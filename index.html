@@ -5,136 +5,175 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ипотечный калькулятор</title>
 <style>
-  html, body { margin: 0; padding: 0; background: #ffffff; }
+  html, body { margin: 0; padding: 0; background: #F5F8FB; }
 </style>
 </head>
 <body>
 
 <!-- ===== ВСТАВКА НА САЙТ: НАЧАЛО (скопируйте всё до метки «КОНЕЦ» в HTML-блок сайта) ===== -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
+/* Стиль BAZA Development (baza.bz): светлый фон, белые карточки 20px, тёмно-синий текст, красные акценты, «таблетки» */
 #ipoteka-calc {
-  --ipc-accent: #1f3864;
-  --ipc-accent-soft: #e8edf6;
-  --ipc-text: #1d2433;
-  --ipc-muted: #5f6b7d;
-  --ipc-line: #dde2ea;
-  --ipc-bg: #ffffff;
-  --ipc-bg-soft: #f5f7fa;
-  --ipc-ok: #1a7f37;
-  --ipc-ok-bg: #e6f4ea;
-  --ipc-bad: #b42318;
-  --ipc-bad-bg: #fdecea;
-  --ipc-warn: #b54708;
-  --ipc-field-bg: #ffffff;
-  --ipc-field-line: #c5ccd8;
-  --ipc-hover: #fafbfd;
-  --ipc-sel: #fff7db;
-  --ipc-faint: #8a94a6;
-  --ipc-on-accent: #ffffff;
-  --ipc-radius: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --ipc-page: #F5F8FB;
+  --ipc-accent: #002346;
+  --ipc-accent-soft: #EDF6FF;
+  --ipc-red: #E20617;
+  --ipc-red-hover: #b50c20;
+  --ipc-red-soft: #fef3f3;
+  --ipc-text: #002346;
+  --ipc-muted: #5f7690;
+  --ipc-line: #D8E6F4;
+  --ipc-bg: #FFFFFF;
+  --ipc-bg-soft: #F5F8FB;
+  --ipc-ok: #4d7a00;
+  --ipc-ok-bg: rgba(135, 202, 0, 0.15);
+  --ipc-bad: #E20617;
+  --ipc-bad-bg: #fef3f3;
+  --ipc-warn: #E66400;
+  --ipc-field-bg: #FFFFFF;
+  --ipc-field-line: #D8E6F4;
+  --ipc-hover: #F5F8FB;
+  --ipc-sel: #EDF6FF;
+  --ipc-faint: #6C8DAF;
+  --ipc-on-accent: #FFFFFF;
+  --ipc-radius: 20px;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   color: var(--ipc-text);
-  background: var(--ipc-bg);
+  background: var(--ipc-page);
   font-size: 15px;
-  line-height: 1.4;
+  line-height: 1.45;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 24px 16px;
   box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
 }
 #ipoteka-calc *, #ipoteka-calc *::before, #ipoteka-calc *::after { box-sizing: border-box; }
-#ipoteka-calc h2 { font-size: 26px; line-height: 1.2; margin: 0 0 4px; font-weight: 700; }
-#ipoteka-calc h3 { font-size: 17px; margin: 0 0 12px; font-weight: 700; }
-#ipoteka-calc .ipc-sub { color: var(--ipc-muted); margin: 0 0 20px; }
-#ipoteka-calc .ipc-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; }
-#ipoteka-calc .ipc-card { border: 1px solid var(--ipc-line); border-radius: var(--ipc-radius); padding: 20px; background: var(--ipc-bg); }
-#ipoteka-calc .ipc-field { margin-bottom: 14px; }
+#ipoteka-calc h2 { font-size: 40px; line-height: 1.1; margin: 0 0 10px; font-weight: 500; letter-spacing: -0.02em; text-wrap: balance; }
+#ipoteka-calc h3 { font-size: 20px; line-height: 1.25; margin: 0 0 18px; font-weight: 700; letter-spacing: -0.01em; }
+#ipoteka-calc .ipc-sub { color: var(--ipc-muted); margin: 0 0 24px; max-width: 640px; font-size: 14px; }
+#ipoteka-calc .ipc-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 16px; align-items: start; }
+#ipoteka-calc .ipc-card { border-radius: var(--ipc-radius); padding: 24px; background: var(--ipc-bg); }
+#ipoteka-calc .ipc-field { margin-bottom: 16px; }
 #ipoteka-calc .ipc-field:last-child { margin-bottom: 0; }
-#ipoteka-calc label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 5px; }
-#ipoteka-calc .ipc-hint { display: block; color: var(--ipc-muted); font-size: 12.5px; margin-top: 4px; }
+#ipoteka-calc label { display: block; font-weight: 500; font-size: 13px; margin-bottom: 6px; color: var(--ipc-muted); }
+#ipoteka-calc .ipc-hint { display: block; color: var(--ipc-faint); font-size: 12px; margin-top: 6px; line-height: 1.35; }
 #ipoteka-calc input, #ipoteka-calc select {
-  width: 100%; height: 42px; padding: 0 12px; font: inherit; color: var(--ipc-text);
-  border: 1px solid var(--ipc-field-line); border-radius: 8px; background: var(--ipc-field-bg); margin: 0;
+  width: 100%; height: 48px; padding: 0 16px; font: inherit; font-size: 15px; color: var(--ipc-text);
+  border: 1px solid var(--ipc-field-line); border-radius: 12px; background: var(--ipc-field-bg); margin: 0;
+  transition: border-color .15s;
 }
-#ipoteka-calc input:focus, #ipoteka-calc select:focus { outline: 2px solid var(--ipc-accent); outline-offset: -1px; border-color: var(--ipc-accent); }
-#ipoteka-calc select:disabled, #ipoteka-calc input:disabled { background: var(--ipc-bg-soft); color: var(--ipc-faint); }
-#ipoteka-calc .ipc-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 12px; margin-bottom: 14px; }
+#ipoteka-calc select {
+  -webkit-appearance: none; appearance: none; padding-right: 40px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23002346' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 16px center;
+}
+#ipoteka-calc input::placeholder { color: var(--ipc-faint); }
+#ipoteka-calc input:hover, #ipoteka-calc select:hover { border-color: var(--ipc-faint); }
+#ipoteka-calc input:focus, #ipoteka-calc select:focus { outline: none; border-color: var(--ipc-accent); box-shadow: 0 0 0 3px var(--ipc-accent-soft); }
+#ipoteka-calc select:disabled, #ipoteka-calc input:disabled { background-color: var(--ipc-bg-soft); color: var(--ipc-faint); cursor: default; border-color: var(--ipc-line); }
+#ipoteka-calc .ipc-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; margin-bottom: 16px; }
 #ipoteka-calc .ipc-row2 .ipc-field { margin-bottom: 0; }
 #ipoteka-calc .ipc-card > :last-child { margin-bottom: 0; }
-#ipoteka-calc .ipc-seg { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--ipc-field-line); border-radius: 8px; overflow: hidden; }
+#ipoteka-calc .ipc-seg { display: flex; flex-wrap: wrap; gap: 8px; }
 #ipoteka-calc .ipc-seg button {
-  font: inherit; font-size: 13.5px; border: 0; background: var(--ipc-field-bg); color: var(--ipc-text); padding: 10px 6px; cursor: pointer; line-height: 1.2;
+  font: inherit; font-size: 14px; border: 1px solid var(--ipc-field-line); background: var(--ipc-field-bg); color: var(--ipc-text);
+  padding: 0 18px; height: 44px; border-radius: 100px; cursor: pointer; line-height: 1.2; transition: border-color .15s, background .15s;
 }
-#ipoteka-calc .ipc-seg button + button { border-left: 1px solid var(--ipc-field-line); }
-#ipoteka-calc .ipc-seg button[aria-pressed="true"] { background: var(--ipc-accent); color: var(--ipc-on-accent); font-weight: 600; }
+#ipoteka-calc .ipc-seg button:hover { border-color: var(--ipc-faint); }
+#ipoteka-calc .ipc-seg button[aria-pressed="true"] { background: var(--ipc-accent); border-color: var(--ipc-accent); color: var(--ipc-on-accent); font-weight: 600; }
+#ipoteka-calc .ipc-seg button:focus-visible, #ipoteka-calc .ipc-btn:focus-visible, #ipoteka-calc .ipc-link:focus-visible,
+#ipoteka-calc tbody tr:focus-visible { outline: 2px solid var(--ipc-red); outline-offset: 2px; }
 #ipoteka-calc .ipc-static { font-size: 14px; color: var(--ipc-muted); }
-#ipoteka-calc .ipc-static b { color: var(--ipc-text); }
+#ipoteka-calc .ipc-static b { color: var(--ipc-text); font-size: 17px; font-weight: 700; }
 
-#ipoteka-calc .ipc-hero { background: var(--ipc-accent-soft); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
-#ipoteka-calc .ipc-prog { font-weight: 700; font-size: 16px; margin-bottom: 8px; }
-#ipoteka-calc .ipc-pay { display: flex; flex-wrap: wrap; gap: 8px 28px; }
-#ipoteka-calc .ipc-pay .ipc-k { color: var(--ipc-muted); font-size: 13px; }
-#ipoteka-calc .ipc-pay .ipc-v { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-#ipoteka-calc .ipc-pay .ipc-v.ipc-sm { font-size: 20px; }
-#ipoteka-calc .ipc-badge { display: inline-block; font-size: 12.5px; font-weight: 600; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+#ipoteka-calc .ipc-hero { background: var(--ipc-accent); color: #FFFFFF; border-radius: 16px; padding: 22px; margin-bottom: 18px; }
+#ipoteka-calc .ipc-hero .ipc-static { color: rgba(255, 255, 255, 0.7); }
+#ipoteka-calc .ipc-prog { font-weight: 500; font-size: 20px; line-height: 1.25; letter-spacing: -0.01em; margin-bottom: 10px; }
+#ipoteka-calc .ipc-pay { display: flex; flex-wrap: wrap; gap: 12px 32px; margin-top: 18px; }
+#ipoteka-calc .ipc-pay .ipc-k { color: rgba(255, 255, 255, 0.7); font-size: 13px; margin-bottom: 2px; }
+#ipoteka-calc .ipc-pay .ipc-v { font-size: 34px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#ipoteka-calc .ipc-pay .ipc-v.ipc-sm { font-size: 22px; font-weight: 500; }
+#ipoteka-calc .ipc-badge { display: inline-block; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 100px; white-space: nowrap; }
 #ipoteka-calc .ipc-badge.ok { color: var(--ipc-ok); background: var(--ipc-ok-bg); }
 #ipoteka-calc .ipc-badge.bad { color: var(--ipc-bad); background: var(--ipc-bad-bg); }
+#ipoteka-calc .ipc-hero .ipc-badge.ok { color: #c8f06e; background: rgba(135, 202, 0, 0.2); }
+#ipoteka-calc .ipc-hero .ipc-badge.bad { color: #ffb3b9; background: rgba(226, 6, 23, 0.3); }
 #ipoteka-calc dl { margin: 0; display: grid; grid-template-columns: 1fr auto; }
-#ipoteka-calc dt, #ipoteka-calc dd { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--ipc-line); }
-#ipoteka-calc dt { color: var(--ipc-muted); padding-right: 12px; }
-#ipoteka-calc dd { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+#ipoteka-calc dt, #ipoteka-calc dd { margin: 0; padding: 10px 0; border-bottom: 1px solid var(--ipc-line); }
+#ipoteka-calc dt { color: var(--ipc-muted); padding-right: 12px; font-size: 14px; }
+#ipoteka-calc dd { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; white-space: nowrap; }
 #ipoteka-calc dt.ipc-strong, #ipoteka-calc dd.ipc-strong { color: var(--ipc-text); font-weight: 700; }
-#ipoteka-calc .ipc-note { margin-top: 12px; font-size: 13.5px; color: var(--ipc-warn); }
-#ipoteka-calc .ipc-alert { background: var(--ipc-bad-bg); color: var(--ipc-bad); border-radius: 8px; padding: 10px 12px; font-weight: 600; margin-bottom: 12px; font-size: 14px; }
+#ipoteka-calc .ipc-note { margin-top: 14px; font-size: 13px; color: var(--ipc-warn); }
+#ipoteka-calc .ipc-alert { background: var(--ipc-bad-bg); color: var(--ipc-bad); border-radius: 12px; padding: 12px 14px; font-weight: 500; margin-bottom: 14px; font-size: 14px; }
 #ipoteka-calc .ipc-alert:empty { display: none; }
 
-#ipoteka-calc .ipc-tablewrap { margin-top: 20px; }
-#ipoteka-calc .ipc-tablehead { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+#ipoteka-calc .ipc-tablewrap { margin-top: 16px; background: var(--ipc-bg); border-radius: var(--ipc-radius); padding: 24px; }
+#ipoteka-calc .ipc-tablehead { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 14px; }
 #ipoteka-calc .ipc-tablehead h3 { margin: 0; }
-#ipoteka-calc .ipc-link { font: inherit; font-size: 13.5px; color: var(--ipc-accent); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
-#ipoteka-calc .ipc-scroll { overflow-x: auto; border: 1px solid var(--ipc-line); border-radius: var(--ipc-radius); }
-#ipoteka-calc table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-#ipoteka-calc th { background: var(--ipc-bg-soft); color: var(--ipc-muted); font-weight: 600; text-align: right; padding: 10px; border-bottom: 1px solid var(--ipc-line); vertical-align: bottom; }
-#ipoteka-calc td { padding: 10px; border-bottom: 1px solid var(--ipc-line); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: top; }
+#ipoteka-calc .ipc-link { font: inherit; font-size: 13px; color: var(--ipc-red); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none; border-bottom: 1px solid var(--ipc-red-soft); }
+#ipoteka-calc .ipc-link:hover { color: var(--ipc-red-hover); }
+#ipoteka-calc .ipc-scroll { overflow-x: auto; }
+#ipoteka-calc table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13.5px; }
+#ipoteka-calc th { color: var(--ipc-faint); font-weight: 500; font-size: 12px; text-align: right; padding: 0 8px 10px; border-bottom: 1px solid var(--ipc-line); vertical-align: bottom; }
+#ipoteka-calc td { padding: 14px 8px; border-bottom: 1px solid var(--ipc-line); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: top; }
 #ipoteka-calc th:first-child, #ipoteka-calc td:first-child,
 #ipoteka-calc th:nth-child(2), #ipoteka-calc td:nth-child(2) { text-align: left; }
-#ipoteka-calc td:nth-child(2) { white-space: normal; min-width: 220px; }
-#ipoteka-calc tbody tr { cursor: pointer; }
-#ipoteka-calc tbody tr:hover { background: var(--ipc-hover); }
-#ipoteka-calc tbody tr.ipc-sel { background: var(--ipc-sel); }
+#ipoteka-calc td:first-child { color: var(--ipc-faint); }
+#ipoteka-calc td:nth-child(2) { white-space: normal; min-width: 180px; font-weight: 500; }
+#ipoteka-calc th:first-child, #ipoteka-calc td:first-child { padding-left: 4px; }
+#ipoteka-calc th:last-child, #ipoteka-calc td:last-child { padding-right: 0; }
+#ipoteka-calc tbody tr { cursor: pointer; transition: background .15s; }
+#ipoteka-calc tbody tr:hover td { background: var(--ipc-hover); }
+#ipoteka-calc tbody tr.ipc-sel td { background: var(--ipc-sel); }
+#ipoteka-calc tbody tr.ipc-sel td:first-child { box-shadow: inset 3px 0 0 var(--ipc-red); }
 #ipoteka-calc tbody tr.ipc-na td { color: var(--ipc-faint); }
 #ipoteka-calc tbody tr:last-child td { border-bottom: 0; }
-#ipoteka-calc .ipc-s2 { display: block; color: var(--ipc-muted); font-size: 12px; }
+#ipoteka-calc .ipc-s2 { display: block; color: var(--ipc-faint); font-size: 12px; font-weight: 400; margin-top: 2px; }
 #ipoteka-calc .ipc-pvup { color: var(--ipc-warn); font-weight: 600; }
 
-#ipoteka-calc details { margin-top: 20px; font-size: 13.5px; color: var(--ipc-muted); }
-#ipoteka-calc summary { cursor: pointer; color: var(--ipc-text); font-weight: 600; }
-#ipoteka-calc details ul { padding-left: 18px; margin: 8px 0 0; }
-#ipoteka-calc details li { margin-bottom: 4px; }
-#ipoteka-calc .ipc-foot { margin-top: 14px; font-size: 12px; color: var(--ipc-faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-#ipoteka-calc .ipc-btn { font: inherit; font-size: 13.5px; border: 1px solid var(--ipc-field-line); background: var(--ipc-field-bg); border-radius: 8px; padding: 6px 12px; cursor: pointer; color: var(--ipc-text); }
+#ipoteka-calc details { margin-top: 16px; font-size: 13px; color: var(--ipc-muted); background: var(--ipc-bg); border-radius: var(--ipc-radius); padding: 18px 24px; }
+#ipoteka-calc summary { cursor: pointer; color: var(--ipc-text); font-weight: 600; font-size: 14px; }
+#ipoteka-calc details ul { padding-left: 18px; margin: 12px 0 0; }
+#ipoteka-calc details li { margin-bottom: 6px; }
+#ipoteka-calc .ipc-foot { margin-top: 16px; font-size: 12px; color: var(--ipc-faint); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+#ipoteka-calc .ipc-btn {
+  font: inherit; font-size: 14px; font-weight: 600; border: 0; background: var(--ipc-red); color: #FFFFFF;
+  border-radius: 100px; padding: 0 24px; height: 44px; cursor: pointer; transition: background .15s;
+}
+#ipoteka-calc .ipc-btn:hover { background: var(--ipc-red-hover); }
 
+@media (prefers-reduced-motion: reduce) { #ipoteka-calc * { transition: none !important; } }
 @media (max-width: 860px) {
   #ipoteka-calc .ipc-grid { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 640px) {
-  #ipoteka-calc h2 { font-size: 22px; }
-  #ipoteka-calc .ipc-card { padding: 16px; }
+  #ipoteka-calc { padding: 16px; }
+  #ipoteka-calc h2 { font-size: 28px; }
+  #ipoteka-calc .ipc-card, #ipoteka-calc .ipc-tablewrap { padding: 18px; }
   #ipoteka-calc .ipc-row2 { grid-template-columns: 1fr; }
-  #ipoteka-calc .ipc-scroll { border: 0; overflow: visible; }
+  #ipoteka-calc .ipc-pay .ipc-v { font-size: 30px; }
+  #ipoteka-calc .ipc-tablewrap { background: transparent; padding: 0; }
+  #ipoteka-calc .ipc-scroll { overflow: visible; }
   #ipoteka-calc table, #ipoteka-calc tbody, #ipoteka-calc tr, #ipoteka-calc td { display: block; width: 100%; }
   #ipoteka-calc thead { display: none; }
-  #ipoteka-calc tbody tr { border: 1px solid var(--ipc-line); border-radius: 10px; margin-bottom: 10px; padding: 6px 12px; }
-  #ipoteka-calc td { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--ipc-line); white-space: normal; text-align: right; }
+  #ipoteka-calc tbody tr { background: var(--ipc-bg); border-radius: 16px; margin-bottom: 10px; padding: 8px 16px; }
+  #ipoteka-calc tbody tr:hover td, #ipoteka-calc tbody tr.ipc-sel td { background: transparent; }
+  #ipoteka-calc tbody tr.ipc-sel { box-shadow: inset 0 0 0 2px var(--ipc-red); }
+  #ipoteka-calc tbody tr.ipc-sel td:first-child { box-shadow: none; }
+  #ipoteka-calc td { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--ipc-line); white-space: normal; text-align: right; }
   #ipoteka-calc td::before { content: attr(data-l); color: var(--ipc-muted); text-align: left; font-weight: 400; }
   #ipoteka-calc td:first-child { display: none; }
-  #ipoteka-calc td:nth-child(2) { display: block; font-weight: 700; font-size: 14.5px; min-width: 0; }
+  #ipoteka-calc td:nth-child(2) { display: block; font-weight: 600; font-size: 15px; min-width: 0; }
   #ipoteka-calc td:nth-child(2)::before { content: none; }
   #ipoteka-calc tbody tr td:last-child { border-bottom: 0; }
 }
 @media print {
+  #ipoteka-calc { background: #FFFFFF; }
   #ipoteka-calc .ipc-btn, #ipoteka-calc .ipc-link, #ipoteka-calc details { display: none; }
   #ipoteka-calc .ipc-grid { grid-template-columns: 1fr 1fr; }
+  #ipoteka-calc .ipc-hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 </style>
 
@@ -250,7 +289,7 @@
   }, window.IPOTEKA_CALC_CONFIG || {});
 
   /* Встроенная копия данных таблицы (на случай, если таблица недоступна). Снята: 30.09.2026 */
-  var SNAPSHOT = {"projects":["ДМД 1 оч.","ДМД 2 оч.","ДНК 1 оч.","Алиса 1 оч."],"types":["Семейная ипотека","IT ипотека","Ипотека для всех"],"discounts":[0.0,0.005,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05,0.055,0.06,0.065,0.07,0.075,0.08,0.085,0.09,0.095,0.1,0.105,0.11,0.115,0.12,0.125,0.13,0.135,0.14,0.145,0.15,0.155,0.16,0.165,0.17,0.175,0.18,0.185,0.19,0.195,0.2,0.205,0.21,0.215,0.22,0.225,0.23],"tolerance":0.002,"threshold":0.01,"family":[["один ребёнок",0.1,0.18,15.0,30.0,0.201,6000000.0],["двое детей",0.08,0.18,15.0,30.0,0.201,8000000.0],["трое детей",0.06,0.18,15.0,30.0,0.201,10000000],["четверо детей",0.04,0.18,15.0,30.0,0.201,10000000],["пятеро и больше",0.02,0.18,15.0,30.0,0.201,10000000]],"programs":[["ДМД 2 оч.","Семейная ипотека","Семейная ипотека",0.06,0.06,0.0,30.0,0.201,6000000.0,0.0,"Все лоты"],["Алиса 1 оч.","Семейная ипотека","Семейная ипотека",0.06,0.06,0.0,30.0,0.201,6000000.0,0.0,"Все лоты"],["Алиса 1 оч.","Семейная ипотека","Семейная ипотека (Сбер)",0.06,0.06,0.0,30.0,0.3,6000000.0,0.0,"Все лоты"],["ДНК 1 оч.","Семейная ипотека","Семейная ипотека",0.06,0.06,0.0,30.0,0.201,6000000.0,0.0,"Все лоты"],["ДНК 1 оч.","Семейная ипотека","Семейная ипотека (Сбер)",0.06,0.06,0.0,30.0,0.3,6000000.0,0.0,"Все лоты"],["ДМД 1 оч.","Семейная ипотека","Семейная ипотека",0.06,0.06,0.0,30.0,0.201,6000000.0,0.0,"Все лоты"],["ДМД 2 оч.","IT ипотека","IT ипотека 6%",0.06,0.06,0.0,30.0,0.201,9000000.0,0.0,"Все лоты"],["ДМД 2 оч.","IT ипотека","Субсид IT ипотека 0,1% на 3 года (Сбер)",0.001,0.06,3.0,30.0,0.201,9000000.0,0.172,"Все лоты"],["ДМД 2 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (Альфа)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.1608,"Все лоты"],["Алиса 1 оч.","IT ипотека","IT ипотека 6%",0.06,0.06,0.0,30.0,0.201,9000000.0,0.0,"Все лоты"],["Алиса 1 оч.","IT ипотека","Субсид IT ипотека 3% на весь срок (Сбер)",0.03,0.03,0.0,30.0,0.3,9000000.0,0.203,"Все лоты"],["Алиса 1 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (Альфа)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.1608,"Все лоты"],["Алиса 1 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (Металлинвест)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.161,"Все лоты"],["Алиса 1 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (ВТБ)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.1774,"Все лоты"],["ДНК 1 оч.","IT ипотека","IT ипотека 6%",0.06,0.06,0.0,30.0,0.201,9000000.0,0.0,"Все лоты"],["ДНК 1 оч.","IT ипотека","Субсид IT ипотека 4% на весь срок (Альфа)",0.04,0.04,0.0,30.0,0.201,9000000.0,0.1249,"Все лоты"],["ДНК 1 оч.","IT ипотека","Субсид IT ипотека 4% на весь срок (Сбер)",0.04,0.04,0.0,30.0,0.201,9000000.0,0.12,"Все лоты"],["ДНК 1 оч.","IT ипотека","Субсид IT ипотека 1,5% на 3 года (Сбер)",0.015,0.06,3.0,30.0,0.201,9000000.0,0.127,"Все лоты"],["ДНК 1 оч.","IT ипотека","Субсид IT ипотека 1% на 2 года (Металлинвест)",0.01,0.06,2.0,30.0,0.201,9000000.0,0.102,"Все лоты"],["ДМД 1 оч.","IT ипотека","IT ипотека 6%",0.06,0.06,0.0,30.0,0.201,9000000.0,0.0,"Все лоты"],["ДМД 1 оч.","IT ипотека","Субсид IT ипотека 4,6% на весь срок (Сбер)",0.046,0.06,0.0,30.0,0.201,9000000.0,0.09,"Все лоты"],["ДМД 1 оч.","IT ипотека","Субсид IT ипотека 3% на 3 года (Сбер)",0.03,0.06,3.0,30.0,0.201,9000000.0,0.091,"Все лоты"],["ДМД 1 оч.","IT ипотека","Субсид IT ипотека 4,5% на весь срок (Металлинвест)",0.045,0.045,0.0,30.0,0.201,9000000.0,0.095,"Все лоты"],["ДМД 2 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (Металлинвест)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.161,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (Уралсиб)",0.1819,0.1819,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (ДОМ.РФ)",0.173,0.173,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (Сбербанк)",0.192,0.192,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (Совком)",0.1899,0.1899,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (Альфа)",0.19,0.19,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 8% на 2 года (Сбер)",0.08,0.192,2.0,30.0,0.201,100000000,0.172,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 12,1% на весь срок (ВТБ)",0.121,0.121,0.0,30.0,0.201,100000000,0.1761,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 11,9% на весь срок (ДОМ.РФ)",0.119,0.119,0.0,30.0,0.201,100000000,0.1546,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 12,49% на весь срок (Совком)",0.1249,0.1249,0.0,20.0,0.201,100000000,0.1249,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (Уралсиб)",0.1819,0.1819,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (ДОМ.РФ)",0.173,0.173,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (Сбербанк)",0.197,0.197,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (МКБ)",0.189,0.189,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (Альфа)",0.19,0.19,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 8,3% на 2 года (Сбер)",0.083,0.197,2.0,30.0,0.201,100000000,0.175,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 7,7% на 2 года (Металлинвест)",0.077,0.189,2.0,30.0,0.201,100000000,0.1758,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 12,1% на весь срок (ВТБ)",0.121,0.121,0.0,30.0,0.201,100000000,0.1761,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 12,49% на весь срок (Совком)",0.1249,0.1249,0.0,20.0,0.201,100000000,0.1249,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 6% на 2 года (МКБ)",0.06,0.189,2.0,30.0,0.201,100000000,0.175,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 11,9% на весь срок (ДОМ.РФ)",0.119,0.119,0.0,30.0,0.201,100000000,0.1395,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 8,2% на 3 года (ДОМ.РФ)",0.082,0.173,3.0,30.0,0.201,100000000,0.1705,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (Уралсиб)",0.1819,0.1819,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (ДОМ.РФ)",0.173,0.173,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (Сбербанк)",0.197,0.197,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (МКБ)",0.189,0.189,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (Совком)",0.1899,0.1899,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (Альфа)",0.19,0.19,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 5,4% на 1 год (Сбер)",0.054,0.197,1.0,30.0,0.201,100000000,0.125,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 12,49% на весь срок (Совком)",0.1249,0.1249,0.0,20.0,0.201,100000000,0.1249,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 10,4% на 3 года (ДОМ.РФ)",0.104,0.173,3.0,30.0,0.201,100000000,0.1199,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 8,6% на 2 года (ДОМ.РФ)",0.086,0.173,2.0,30.0,0.201,100000000,0.1251,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 12,3% на весь срок (ДОМ.РФ)",0.123,0.123,0.0,30.0,0.201,100000000,0.1255,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (Уралсиб)",0.1819,0.1819,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (ДОМ.РФ)",0.173,0.173,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (Сбербанк)",0.192,0.192,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (МКБ)",0.189,0.189,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (Совком)",0.1899,0.1899,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (Альфа)",0.19,0.19,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Субсид станд ипотека 7,4% на 1 год (Сбер)",0.074,0.192,1.0,30.0,0.3,100000000,0.1,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Субсид станд ипотека 0,99% на 1 год (МКБ)",0.0099,0.189,1.0,30.0,0.5,100000000,0.14,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Субсид станд ипотека 10% на 2 года (МКБ)",0.1,0.189,2.0,30.0,0.5,100000000,0.14,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 8,7% на 3 года (ДОМ.РФ)",0.087,0.173,3.0,30.0,0.201,100000000,0.1741,"Все лоты"]]};
+  var SNAPSHOT = {"projects":["ДМД 1 оч.","ДМД 2 оч.","ДНК 1 оч.","Алиса 1 оч."],"types":["Семейная ипотека","IT ипотека","Ипотека для всех"],"discounts":[0.0,0.005,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05,0.055,0.06,0.065,0.07,0.075,0.08,0.085,0.09,0.095,0.1,0.105,0.11,0.115,0.12,0.125,0.13,0.135,0.14,0.145,0.15,0.155,0.16,0.165,0.17,0.175,0.18,0.185,0.19,0.195,0.2],"tolerance":0.002,"threshold":0.01,"family":[["один ребёнок",0.1,0.18,15.0,30.0,0.201,6000000.0],["двое детей",0.08,0.18,15.0,30.0,0.201,8000000.0],["трое детей",0.06,0.18,15.0,30.0,0.201,10000000],["четверо детей",0.04,0.18,15.0,30.0,0.201,10000000],["пятеро и больше",0.02,0.18,15.0,30.0,0.201,10000000]],"programs":[["ДМД 2 оч.","Семейная ипотека","Семейная ипотека",0.06,0.06,0.0,30.0,0.201,6000000.0,0.0,"Все лоты"],["Алиса 1 оч.","Семейная ипотека","Семейная ипотека",0.06,0.06,0.0,30.0,0.201,6000000.0,0.0,"Все лоты"],["Алиса 1 оч.","Семейная ипотека","Семейная ипотека (Сбер)",0.06,0.06,0.0,30.0,0.3,6000000.0,0.0,"Все лоты"],["ДНК 1 оч.","Семейная ипотека","Семейная ипотека",0.06,0.06,0.0,30.0,0.201,6000000.0,0.0,"Все лоты"],["ДНК 1 оч.","Семейная ипотека","Семейная ипотека (Сбер)",0.06,0.06,0.0,30.0,0.3,6000000.0,0.0,"Все лоты"],["ДМД 1 оч.","Семейная ипотека","Семейная ипотека",0.06,0.06,0.0,30.0,0.201,6000000.0,0.0,"Все лоты"],["ДМД 2 оч.","IT ипотека","IT ипотека 6%",0.06,0.06,0.0,30.0,0.201,9000000.0,0.0,"Все лоты"],["ДМД 2 оч.","IT ипотека","Субсид IT ипотека 0,1% на 3 года (Сбер)",0.001,0.06,3.0,30.0,0.201,9000000.0,0.172,"Все лоты"],["ДМД 2 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (Альфа)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.1608,"Все лоты"],["Алиса 1 оч.","IT ипотека","IT ипотека 6%",0.06,0.06,0.0,30.0,0.201,9000000.0,0.0,"Все лоты"],["Алиса 1 оч.","IT ипотека","Субсид IT ипотека 3% на весь срок (Сбер)",0.03,0.03,0.0,30.0,0.3,9000000.0,0.203,"Все лоты"],["Алиса 1 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (Альфа)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.1608,"Все лоты"],["Алиса 1 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (Металлинвест)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.161,"Все лоты"],["Алиса 1 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (ВТБ)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.1774,"Все лоты"],["ДНК 1 оч.","IT ипотека","IT ипотека 6%",0.06,0.06,0.0,30.0,0.201,9000000.0,0.0,"Все лоты"],["ДНК 1 оч.","IT ипотека","Субсид IT ипотека 4% на весь срок (Альфа)",0.04,0.04,0.0,30.0,0.201,9000000.0,0.1249,"Все лоты"],["ДНК 1 оч.","IT ипотека","Субсид IT ипотека 4% на весь срок (Сбер)",0.04,0.04,0.0,30.0,0.201,9000000.0,0.12,"Все лоты"],["ДНК 1 оч.","IT ипотека","Субсид IT ипотека 1,5% на 3 года (Сбер)",0.015,0.06,3.0,30.0,0.201,9000000.0,0.127,"Все лоты"],["ДНК 1 оч.","IT ипотека","Субсид IT ипотека 1% на 2 года (Металлинвест)",0.01,0.06,2.0,30.0,0.201,9000000.0,0.102,"Все лоты"],["ДМД 1 оч.","IT ипотека","IT ипотека 6%",0.06,0.06,0.0,30.0,0.201,9000000.0,0.0,"Все лоты"],["ДМД 1 оч.","IT ипотека","Субсид IT ипотека 4,6% на весь срок (Сбер)",0.046,0.06,0.0,30.0,0.201,9000000.0,0.09,"Все лоты"],["ДМД 1 оч.","IT ипотека","Субсид IT ипотека 3% на 3 года (Сбер)",0.03,0.06,3.0,30.0,0.201,9000000.0,0.091,"Все лоты"],["ДМД 1 оч.","IT ипотека","Субсид IT ипотека 4,5% на весь срок (Металлинвест)",0.045,0.045,0.0,30.0,0.201,9000000.0,0.095,"Все лоты"],["ДМД 2 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (Металлинвест)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.161,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (Уралсиб)",0.1819,0.1819,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (ДОМ.РФ)",0.173,0.173,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (Сбербанк)",0.192,0.192,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (Совком)",0.1899,0.1899,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (Альфа)",0.19,0.19,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 8% на 2 года (Сбер)",0.08,0.192,2.0,30.0,0.201,100000000,0.172,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 12,1% на весь срок (ВТБ)",0.121,0.121,0.0,30.0,0.201,100000000,0.1761,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 11,9% на весь срок (ДОМ.РФ)",0.119,0.119,0.0,30.0,0.201,100000000,0.1546,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 12,49% на весь срок (Совком)",0.1249,0.1249,0.0,20.0,0.201,100000000,0.1249,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (Уралсиб)",0.1819,0.1819,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (ДОМ.РФ)",0.173,0.173,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (Сбербанк)",0.197,0.197,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (МКБ)",0.189,0.189,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (Альфа)",0.19,0.19,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 8,3% на 2 года (Сбер)",0.083,0.197,2.0,30.0,0.201,100000000,0.175,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 7,7% на 2 года (Металлинвест)",0.077,0.189,2.0,30.0,0.201,100000000,0.1758,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 12,1% на весь срок (ВТБ)",0.121,0.121,0.0,30.0,0.201,100000000,0.1761,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 12,49% на весь срок (Совком)",0.1249,0.1249,0.0,20.0,0.201,100000000,0.1249,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 6% на 2 года (МКБ)",0.06,0.189,2.0,30.0,0.201,100000000,0.175,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 11,9% на весь срок (ДОМ.РФ)",0.119,0.119,0.0,30.0,0.201,100000000,0.1395,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 8,2% на 3 года (ДОМ.РФ)",0.082,0.173,3.0,30.0,0.201,100000000,0.1705,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (Уралсиб)",0.1819,0.1819,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (ДОМ.РФ)",0.173,0.173,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (Сбербанк)",0.197,0.197,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (МКБ)",0.189,0.189,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (Совком)",0.1899,0.1899,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (Альфа)",0.19,0.19,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 5,4% на 1 год (Сбер)",0.054,0.197,1.0,30.0,0.201,100000000,0.125,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 12,49% на весь срок (Совком)",0.1249,0.1249,0.0,20.0,0.201,100000000,0.1249,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 10,4% на 3 года (ДОМ.РФ)",0.104,0.173,3.0,30.0,0.201,100000000,0.1199,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 8,6% на 2 года (ДОМ.РФ)",0.086,0.173,2.0,30.0,0.201,100000000,0.1251,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 12,3% на весь срок (ДОМ.РФ)",0.123,0.123,0.0,30.0,0.201,100000000,0.1255,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (Уралсиб)",0.1819,0.1819,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (ДОМ.РФ)",0.173,0.173,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (Сбербанк)",0.192,0.192,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (МКБ)",0.189,0.189,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (Совком)",0.1899,0.1899,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (Альфа)",0.19,0.19,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Субсид станд ипотека 7,4% на 1 год (Сбер)",0.074,0.192,1.0,30.0,0.3,100000000,0.1,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Субсид станд ипотека 0,99% на 1 год (МКБ)",0.0099,0.189,1.0,30.0,0.5,100000000,0.14,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Субсид станд ипотека 10% на 2 года (МКБ)",0.1,0.189,2.0,30.0,0.5,100000000,0.14,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 8,7% на 3 года (ДОМ.РФ)",0.087,0.173,3.0,30.0,0.201,100000000,0.1741,"Все лоты"]]};
   var SNAPDATE = '30.09.2026';
 
   var FAMILY = 'Семейная ипотека';
@@ -275,13 +314,8 @@
     var projects = (raw.projects || []).map(function (p) { return String(p).trim(); }).filter(function (p) { return withPrograms[p]; });
     programs.forEach(function (p) { if (projects.indexOf(p.proj) < 0) projects.push(p.proj); });
     var types = (raw.types && raw.types.length ? raw.types : ['Семейная ипотека', 'IT ипотека', 'Ипотека для всех']).map(String);
-    // Диапазон скидок: 0–23% с шагом 0,5% (+ любые дополнительные значения из таблицы)
-    var discounts = [];
-    for (var i = 0; i <= 46; i++) discounts.push(i / 200);
-    (raw.discounts || []).forEach(function (d) {
-      if (typeof d === 'number' && !discounts.some(function (x) { return Math.abs(x - d) < 1e-9; })) discounts.push(d);
-    });
-    discounts.sort(function (a, b) { return a - b; });
+    var discounts = (raw.discounts || []).filter(function (d) { return typeof d === 'number'; });
+    if (!discounts.length) for (var i = 0; i <= 40; i++) discounts.push(i / 200);
     return {
       programs: programs, family: family, projects: projects, types: types, discounts: discounts,
       tolerance: typeof raw.tolerance === 'number' ? raw.tolerance : 0.002,
