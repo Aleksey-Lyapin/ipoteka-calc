@@ -6,6 +6,7 @@
 <title>Ипотечный калькулятор</title>
 <style>
   html, body { margin: 0; padding: 0; background: #F5F8FB; }
+  @media print { html, body { background: #FFFFFF; } }
 </style>
 </head>
 <body>
@@ -110,7 +111,7 @@
 #ipoteka-calc .ipc-hero .ipc-badge.ok { color: #c8f06e; background: rgba(135, 202, 0, 0.2); }
 #ipoteka-calc .ipc-hero .ipc-badge.bad { color: #ffb3b9; background: rgba(226, 6, 23, 0.3); }
 #ipoteka-calc dl { margin: 0; display: grid; grid-template-columns: 1fr auto; }
-#ipoteka-calc dt, #ipoteka-calc dd { margin: 0; padding: 10px 0; border-bottom: 1px solid var(--ipc-line); }
+#ipoteka-calc dt, #ipoteka-calc dd { margin: 0; padding: 6px 0; border-bottom: 1px solid var(--ipc-line); }
 #ipoteka-calc dt { color: var(--ipc-muted); padding-right: 12px; font-size: 14px; }
 #ipoteka-calc dd { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; white-space: nowrap; }
 #ipoteka-calc dt.ipc-strong, #ipoteka-calc dd.ipc-strong { color: var(--ipc-text); font-weight: 700; }
@@ -228,11 +229,41 @@
   #ipoteka-calc td:nth-child(2)::before { content: none; }
   #ipoteka-calc tbody tr td:last-child { border-bottom: 0; }
 }
+/* Печать: A4 альбомный. Лист 1 — исходные данные и расчёт выбранной программы, лист 2 — все программы */
+@page { size: A4 landscape; margin: 8mm; }
 @media print {
-  #ipoteka-calc { background: #FFFFFF; }
-  #ipoteka-calc .ipc-btn, #ipoteka-calc .ipc-link, #ipoteka-calc details { display: none; }
-  #ipoteka-calc .ipc-grid { grid-template-columns: 1fr 1fr; }
-  #ipoteka-calc .ipc-hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #ipoteka-calc { background: #FFFFFF; padding: 0; max-width: none; font-size: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #ipoteka-calc .ipc-actions, #ipoteka-calc .ipc-link, #ipoteka-calc details, #ipoteka-calc .ipc-sub,
+  #ipoteka-calc .ipc-hint, #ipoteka-calc #ipc-pickinfo, #ipoteka-calc .ipc-foot { display: none !important; }
+  #ipoteka-calc .ipc-brand { margin-bottom: 10px; }
+  #ipoteka-calc h2 { font-size: 26px; }
+  #ipoteka-calc h3 { font-size: 15px; margin-bottom: 8px; }
+  #ipoteka-calc .ipc-logo-svg { height: 38px; }
+  #ipoteka-calc .ipc-grid { grid-template-columns: 5fr 6fr; gap: 10px; }
+  #ipoteka-calc .ipc-card { padding: 12px 16px; border: 1px solid var(--ipc-line); break-inside: avoid; page-break-inside: avoid; }
+  #ipoteka-calc label { font-size: 11px; margin-bottom: 2px; }
+  #ipoteka-calc input, #ipoteka-calc select { height: 30px; font-size: 12px; padding: 0 10px; border-radius: 8px; }
+  #ipoteka-calc select { background-position: right 10px center; }
+  #ipoteka-calc .ipc-row2 { gap: 8px; margin-bottom: 8px; }
+  #ipoteka-calc .ipc-field { margin-bottom: 8px; }
+  #ipoteka-calc .ipc-seg { gap: 6px; }
+  #ipoteka-calc .ipc-seg button { height: 28px; padding: 0 12px; font-size: 11.5px; }
+  #ipoteka-calc .ipc-hero { padding: 12px 14px; margin-bottom: 8px; border-radius: 12px; }
+  #ipoteka-calc .ipc-prog { font-size: 15px; margin-bottom: 6px; }
+  #ipoteka-calc .ipc-pay { margin-top: 8px; gap: 4px 24px; }
+  #ipoteka-calc .ipc-pay .ipc-v { font-size: 24px; }
+  #ipoteka-calc .ipc-pay .ipc-v.ipc-sm { font-size: 17px; }
+  #ipoteka-calc dt, #ipoteka-calc dd { padding: 3px 0; font-size: 12px; }
+  #ipoteka-calc .ipc-note { margin-top: 6px; font-size: 11px; }
+  #ipoteka-calc .ipc-tablewrap { break-before: page; page-break-before: always; margin-top: 0; padding: 12px 16px; border: 1px solid var(--ipc-line); }
+  #ipoteka-calc .ipc-scroll { overflow: visible; }
+  #ipoteka-calc table { font-size: 11px; }
+  #ipoteka-calc th { padding: 0 5px 6px; font-size: 10px; }
+  #ipoteka-calc td { padding: 6px 5px; }
+  #ipoteka-calc td:nth-child(2) { min-width: 150px; }
+  #ipoteka-calc tbody tr { break-inside: avoid; page-break-inside: avoid; }
+  #ipoteka-calc .ipc-s2 { font-size: 10px; }
+  #ipoteka-calc .ipc-badge { font-size: 10.5px; padding: 3px 8px; }
 }
 </style>
 
