@@ -252,7 +252,7 @@
         </div>
         <div class="ipc-field">
           <label for="ipc-flat">Номер квартиры</label>
-          <input id="ipc-flat" type="text" autocomplete="off" placeholder="необязательно">
+          <input id="ipc-flat" type="text" autocomplete="off" placeholder="указать">
         </div>
       </div>
       <div class="ipc-row2">
@@ -618,10 +618,8 @@
     add('Минимальный ПВ', rub(r.mpvr));
     add('Первоначальный взнос в расчёте', rub(r.pv) + ' · ' + pct1(r.price ? r.pv / r.price : 0), true);
     add('Сумма кредита', rub(r.loan), true);
-    if (grace) add('Остаток долга после льготного периода', rub(r.bal));
-    add('Итого выплат банку', rub(r.tot));
     add('Переплата (проценты)', rub(r.over));
-    add('Полная стоимость (ПВ + выплаты)', rub(r.pv + r.tot), true);
+    add('Итого выплат банку', rub(r.tot), true);
     if (CONFIG.showInternal) add('Субсидия застройщика банку', rub(r.subr) + ' · ' + pct(r.sub));
 
     var flat = el.flat.value.trim();
