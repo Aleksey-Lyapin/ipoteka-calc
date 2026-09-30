@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ипотечный калькулятор</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #ffffff; }
+</style>
+</head>
+<body>
+
+<!-- ===== ВСТАВКА НА САЙТ: НАЧАЛО (скопируйте всё до метки «КОНЕЦ» в HTML-блок сайта) ===== -->
+<style>
+#ipoteka-calc {
+  --ipc-accent: #1f3864;
+  --ipc-accent-soft: #e8edf6;
+  --ipc-text: #1d2433;
+  --ipc-muted: #5f6b7d;
+  --ipc-line: #dde2ea;
+  --ipc-bg: #ffffff;
+  --ipc-bg-soft: #f5f7fa;
+  --ipc-ok: #1a7f37;
+  --ipc-ok-bg: #e6f4ea;
+  --ipc-bad: #b42318;
+  --ipc-bad-bg: #fdecea;
+  --ipc-warn: #b54708;
+  --ipc-field-bg: #ffffff;
+  --ipc-field-line: #c5ccd8;
+  --ipc-hover: #fafbfd;
+  --ipc-sel: #fff7db;
+  --ipc-faint: #8a94a6;
+  --ipc-on-accent: #ffffff;
+  --ipc-radius: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--ipc-text);
+  background: var(--ipc-bg);
+  font-size: 15px;
+  line-height: 1.4;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+#ipoteka-calc *, #ipoteka-calc *::before, #ipoteka-calc *::after { box-sizing: border-box; }
+#ipoteka-calc h2 { font-size: 26px; line-height: 1.2; margin: 0 0 4px; font-weight: 700; }
+#ipoteka-calc h3 { font-size: 17px; margin: 0 0 12px; font-weight: 700; }
+#ipoteka-calc .ipc-sub { color: var(--ipc-muted); margin: 0 0 20px; }
+#ipoteka-calc .ipc-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; }
+#ipoteka-calc .ipc-card { border: 1px solid var(--ipc-line); border-radius: var(--ipc-radius); padding: 20px; background: var(--ipc-bg); }
+#ipoteka-calc .ipc-field { margin-bottom: 14px; }
+#ipoteka-calc .ipc-field:last-child { margin-bottom: 0; }
+#ipoteka-calc label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 5px; }
+#ipoteka-calc .ipc-hint { display: block; color: var(--ipc-muted); font-size: 12.5px; margin-top: 4px; }
+#ipoteka-calc input, #ipoteka-calc select {
+  width: 100%; height: 42px; padding: 0 12px; font: inherit; color: var(--ipc-text);
+  border: 1px solid var(--ipc-field-line); border-radius: 8px; background: var(--ipc-field-bg); margin: 0;
+}
+#ipoteka-calc input:focus, #ipoteka-calc select:focus { outline: 2px solid var(--ipc-accent); outline-offset: -1px; border-color: var(--ipc-accent); }
+#ipoteka-calc select:disabled, #ipoteka-calc input:disabled { background: var(--ipc-bg-soft); color: var(--ipc-faint); }
+#ipoteka-calc .ipc-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 12px; margin-bottom: 14px; }
+#ipoteka-calc .ipc-row2 .ipc-field { margin-bottom: 0; }
+#ipoteka-calc .ipc-card > :last-child { margin-bottom: 0; }
+#ipoteka-calc .ipc-seg { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--ipc-field-line); border-radius: 8px; overflow: hidden; }
+#ipoteka-calc .ipc-seg button {
+  font: inherit; font-size: 13.5px; border: 0; background: var(--ipc-field-bg); color: var(--ipc-text); padding: 10px 6px; cursor: pointer; line-height: 1.2;
+}
+#ipoteka-calc .ipc-seg button + button { border-left: 1px solid var(--ipc-field-line); }
+#ipoteka-calc .ipc-seg button[aria-pressed="true"] { background: var(--ipc-accent); color: var(--ipc-on-accent); font-weight: 600; }
+#ipoteka-calc .ipc-static { font-size: 14px; color: var(--ipc-muted); }
+#ipoteka-calc .ipc-static b { color: var(--ipc-text); }
+
+#ipoteka-calc .ipc-hero { background: var(--ipc-accent-soft); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+#ipoteka-calc .ipc-prog { font-weight: 700; font-size: 16px; margin-bottom: 8px; }
+#ipoteka-calc .ipc-pay { display: flex; flex-wrap: wrap; gap: 8px 28px; }
+#ipoteka-calc .ipc-pay .ipc-k { color: var(--ipc-muted); font-size: 13px; }
+#ipoteka-calc .ipc-pay .ipc-v { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#ipoteka-calc .ipc-pay .ipc-v.ipc-sm { font-size: 20px; }
+#ipoteka-calc .ipc-badge { display: inline-block; font-size: 12.5px; font-weight: 600; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+#ipoteka-calc .ipc-badge.ok { color: var(--ipc-ok); background: var(--ipc-ok-bg); }
+#ipoteka-calc .ipc-badge.bad { color: var(--ipc-bad); background: var(--ipc-bad-bg); }
+#ipoteka-calc dl { margin: 0; display: grid; grid-template-columns: 1fr auto; }
+#ipoteka-calc dt, #ipoteka-calc dd { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--ipc-line); }
+#ipoteka-calc dt { color: var(--ipc-muted); padding-right: 12px; }
+#ipoteka-calc dd { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+#ipoteka-calc dt.ipc-strong, #ipoteka-calc dd.ipc-strong { color: var(--ipc-text); font-weight: 700; }
+#ipoteka-calc .ipc-note { margin-top: 12px; font-size: 13.5px; color: var(--ipc-warn); }
+#ipoteka-calc .ipc-alert { background: var(--ipc-bad-bg); color: var(--ipc-bad); border-radius: 8px; padding: 10px 12px; font-weight: 600; margin-bottom: 12px; font-size: 14px; }
+#ipoteka-calc .ipc-alert:empty { display: none; }
+
+#ipoteka-calc .ipc-tablewrap { margin-top: 20px; }
+#ipoteka-calc .ipc-tablehead { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+#ipoteka-calc .ipc-tablehead h3 { margin: 0; }
+#ipoteka-calc .ipc-link { font: inherit; font-size: 13.5px; color: var(--ipc-accent); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
+#ipoteka-calc .ipc-scroll { overflow-x: auto; border: 1px solid var(--ipc-line); border-radius: var(--ipc-radius); }
+#ipoteka-calc table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+#ipoteka-calc th { background: var(--ipc-bg-soft); color: var(--ipc-muted); font-weight: 600; text-align: right; padding: 10px; border-bottom: 1px solid var(--ipc-line); vertical-align: bottom; }
+#ipoteka-calc td { padding: 10px; border-bottom: 1px solid var(--ipc-line); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: top; }
+#ipoteka-calc th:first-child, #ipoteka-calc td:first-child,
+#ipoteka-calc th:nth-child(2), #ipoteka-calc td:nth-child(2) { text-align: left; }
+#ipoteka-calc td:nth-child(2) { white-space: normal; min-width: 220px; }
+#ipoteka-calc tbody tr { cursor: pointer; }
+#ipoteka-calc tbody tr:hover { background: var(--ipc-hover); }
+#ipoteka-calc tbody tr.ipc-sel { background: var(--ipc-sel); }
+#ipoteka-calc tbody tr.ipc-na td { color: var(--ipc-faint); }
+#ipoteka-calc tbody tr:last-child td { border-bottom: 0; }
+#ipoteka-calc .ipc-s2 { display: block; color: var(--ipc-muted); font-size: 12px; }
+#ipoteka-calc .ipc-pvup { color: var(--ipc-warn); font-weight: 600; }
+
+#ipoteka-calc details { margin-top: 20px; font-size: 13.5px; color: var(--ipc-muted); }
+#ipoteka-calc summary { cursor: pointer; color: var(--ipc-text); font-weight: 600; }
+#ipoteka-calc details ul { padding-left: 18px; margin: 8px 0 0; }
+#ipoteka-calc details li { margin-bottom: 4px; }
+#ipoteka-calc .ipc-foot { margin-top: 14px; font-size: 12px; color: var(--ipc-faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+#ipoteka-calc .ipc-btn { font: inherit; font-size: 13.5px; border: 1px solid var(--ipc-field-line); background: var(--ipc-field-bg); border-radius: 8px; padding: 6px 12px; cursor: pointer; color: var(--ipc-text); }
+
+@media (max-width: 860px) {
+  #ipoteka-calc .ipc-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  #ipoteka-calc h2 { font-size: 22px; }
+  #ipoteka-calc .ipc-card { padding: 16px; }
+  #ipoteka-calc .ipc-row2 { grid-template-columns: 1fr; }
+  #ipoteka-calc .ipc-scroll { border: 0; overflow: visible; }
+  #ipoteka-calc table, #ipoteka-calc tbody, #ipoteka-calc tr, #ipoteka-calc td { display: block; width: 100%; }
+  #ipoteka-calc thead { display: none; }
+  #ipoteka-calc tbody tr { border: 1px solid var(--ipc-line); border-radius: 10px; margin-bottom: 10px; padding: 6px 12px; }
+  #ipoteka-calc td { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--ipc-line); white-space: normal; text-align: right; }
+  #ipoteka-calc td::before { content: attr(data-l); color: var(--ipc-muted); text-align: left; font-weight: 400; }
+  #ipoteka-calc td:first-child { display: none; }
+  #ipoteka-calc td:nth-child(2) { display: block; font-weight: 700; font-size: 14.5px; min-width: 0; }
+  #ipoteka-calc td:nth-child(2)::before { content: none; }
+  #ipoteka-calc tbody tr td:last-child { border-bottom: 0; }
+}
+@media print {
+  #ipoteka-calc .ipc-btn, #ipoteka-calc .ipc-link, #ipoteka-calc details { display: none; }
+  #ipoteka-calc .ipc-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+
+<div id="ipoteka-calc">
+  <h2>Ипотечный калькулятор</h2>
+  <p class="ipc-sub">Выберите проект и условия — калькулятор подберёт программу с наименьшим платежом и покажет все программы проекта.</p>
+
+  <div class="ipc-grid">
+    <div class="ipc-card">
+      <h3>Исходные данные</h3>
+      <div class="ipc-row2">
+        <div class="ipc-field">
+          <label for="ipc-project">Проект</label>
+          <select id="ipc-project"></select>
+        </div>
+        <div class="ipc-field">
+          <label for="ipc-flat">Номер квартиры</label>
+          <input id="ipc-flat" type="text" autocomplete="off" placeholder="необязательно">
+        </div>
+      </div>
+      <div class="ipc-row2">
+        <div class="ipc-field">
+          <label for="ipc-price">Стоимость квартиры, ₽</label>
+          <input id="ipc-price" type="text" inputmode="numeric" autocomplete="off">
+          <span class="ipc-hint">Базовая цена без скидки</span>
+        </div>
+        <div class="ipc-field">
+          <label for="ipc-finish">Отделка, ₽</label>
+          <input id="ipc-finish" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+          <span class="ipc-hint">Добавляется к цене и входит в кредит</span>
+        </div>
+      </div>
+      <div class="ipc-row2">
+        <div class="ipc-field">
+          <label for="ipc-disc">Скидка на квартиру</label>
+          <select id="ipc-disc"></select>
+        </div>
+        <div class="ipc-field">
+          <label>Цена со скидкой</label>
+          <div class="ipc-static" style="height:42px;display:flex;align-items:center"><b id="ipc-discprice">—</b></div>
+        </div>
+      </div>
+      <div class="ipc-field">
+        <label id="ipc-type-l">Тип ипотеки</label>
+        <div class="ipc-seg" id="ipc-type" role="group" aria-labelledby="ipc-type-l"></div>
+      </div>
+      <div class="ipc-field">
+        <label for="ipc-kids">Количество детей</label>
+        <select id="ipc-kids"></select>
+        <span class="ipc-hint" id="ipc-kids-hint">Для семейной ипотеки: определяет ставку, льготный период и лимит кредита</span>
+      </div>
+      <div class="ipc-row2">
+        <div class="ipc-field">
+          <label for="ipc-pv">Первоначальный взнос, ₽</label>
+          <input id="ipc-pv" type="text" inputmode="numeric" autocomplete="off" placeholder="минимальный">
+          <span class="ipc-hint">Пусто — минимальный. Меньше минимума — увеличится автоматически</span>
+        </div>
+        <div class="ipc-field">
+          <label for="ipc-term">Срок, лет</label>
+          <input id="ipc-term" type="number" inputmode="decimal" min="1" max="30" step="1" placeholder="максимальный">
+          <span class="ipc-hint">Не больше максимального срока программы</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ipc-card" id="ipc-result">
+      <h3>Расчёт выбранной программы</h3>
+      <div class="ipc-alert" id="ipc-alert"></div>
+      <div id="ipc-detail"></div>
+    </div>
+  </div>
+
+  <div class="ipc-tablewrap">
+    <div class="ipc-tablehead">
+      <h3 id="ipc-table-title">Все программы проекта</h3>
+      <span class="ipc-static" id="ipc-pickinfo"></span>
+    </div>
+    <div class="ipc-scroll">
+      <table>
+        <thead id="ipc-thead"></thead>
+        <tbody id="ipc-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <details>
+    <summary>Как считается</summary>
+    <ul id="ipc-notes"></ul>
+  </details>
+
+  <div class="ipc-foot">
+    <span id="ipc-source"></span>
+    <button type="button" class="ipc-btn" id="ipc-print">Распечатать расчёт</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================== НАСТРОЙКИ ================== */
+  var CONFIG = Object.assign({
+    // ID Google Таблицы с программами. Таблица должна быть доступна «всем, у кого есть ссылка» (просмотр).
+    sheetId: '13obtdqMiDQv0a_7CC7b0LsY2UZJA_xFZd6JtBN3uDRk',
+    // true — при открытии страницы подтягивать актуальные программы из таблицы (если не удалось — встроенная копия ниже)
+    liveData: true,
+    // true — показывать внутренние данные: субсидию застройщика банку (₽ и %). Для публичного сайта — false.
+    showInternal: false,
+    // Значения по умолчанию
+    defaults: { project: 'ДМД 2 оч.', price: 15000000, discount: 0.14, type: 'Ипотека для всех', kids: 'двое детей', term: 30 }
+  }, window.IPOTEKA_CALC_CONFIG || {});
+
+  /* Встроенная копия данных таблицы (на случай, если таблица недоступна). Снята: 30.09.2026 */
+  var SNAPSHOT = {"projects":["ДМД 1 оч.","ДМД 2 оч.","ДНК 1 оч.","Алиса 1 оч."],"types":["Семейная ипотека","IT ипотека","Ипотека для всех"],"discounts":[0.0,0.005,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05,0.055,0.06,0.065,0.07,0.075,0.08,0.085,0.09,0.095,0.1,0.105,0.11,0.115,0.12,0.125,0.13,0.135,0.14,0.145,0.15,0.155,0.16,0.165,0.17,0.175,0.18,0.185,0.19,0.195,0.2],"tolerance":0.002,"threshold":0.01,"family":[["один ребёнок",0.1,0.18,15.0,30.0,0.201,6000000.0],["двое детей",0.08,0.18,15.0,30.0,0.201,8000000.0],["трое детей",0.06,0.18,15.0,30.0,0.201,10000000],["четверо детей",0.04,0.18,15.0,30.0,0.201,10000000],["пятеро и больше",0.02,0.18,15.0,30.0,0.201,10000000]],"programs":[["ДМД 2 оч.","Семейная ипотека","Семейная ипотека",0.06,0.06,0.0,30.0,0.201,6000000.0,0.0,"Все лоты"],["Алиса 1 оч.","Семейная ипотека","Семейная ипотека",0.06,0.06,0.0,30.0,0.201,6000000.0,0.0,"Все лоты"],["Алиса 1 оч.","Семейная ипотека","Семейная ипотека (Сбер)",0.06,0.06,0.0,30.0,0.3,6000000.0,0.0,"Все лоты"],["ДНК 1 оч.","Семейная ипотека","Семейная ипотека",0.06,0.06,0.0,30.0,0.201,6000000.0,0.0,"Все лоты"],["ДНК 1 оч.","Семейная ипотека","Семейная ипотека (Сбер)",0.06,0.06,0.0,30.0,0.3,6000000.0,0.0,"Все лоты"],["ДМД 1 оч.","Семейная ипотека","Семейная ипотека",0.06,0.06,0.0,30.0,0.201,6000000.0,0.0,"Все лоты"],["ДМД 2 оч.","IT ипотека","IT ипотека 6%",0.06,0.06,0.0,30.0,0.201,9000000.0,0.0,"Все лоты"],["ДМД 2 оч.","IT ипотека","Субсид IT ипотека 0,1% на 3 года (Сбер)",0.001,0.06,3.0,30.0,0.201,9000000.0,0.172,"Все лоты"],["ДМД 2 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (Альфа)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.1608,"Все лоты"],["Алиса 1 оч.","IT ипотека","IT ипотека 6%",0.06,0.06,0.0,30.0,0.201,9000000.0,0.0,"Все лоты"],["Алиса 1 оч.","IT ипотека","Субсид IT ипотека 3% на весь срок (Сбер)",0.03,0.03,0.0,30.0,0.3,9000000.0,0.203,"Все лоты"],["Алиса 1 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (Альфа)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.1608,"Все лоты"],["Алиса 1 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (Металлинвест)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.161,"Все лоты"],["Алиса 1 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (ВТБ)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.1774,"Все лоты"],["ДНК 1 оч.","IT ипотека","IT ипотека 6%",0.06,0.06,0.0,30.0,0.201,9000000.0,0.0,"Все лоты"],["ДНК 1 оч.","IT ипотека","Субсид IT ипотека 4% на весь срок (Альфа)",0.04,0.04,0.0,30.0,0.201,9000000.0,0.1249,"Все лоты"],["ДНК 1 оч.","IT ипотека","Субсид IT ипотека 4% на весь срок (Сбер)",0.04,0.04,0.0,30.0,0.201,9000000.0,0.12,"Все лоты"],["ДНК 1 оч.","IT ипотека","Субсид IT ипотека 1,5% на 3 года (Сбер)",0.015,0.06,3.0,30.0,0.201,9000000.0,0.127,"Все лоты"],["ДНК 1 оч.","IT ипотека","Субсид IT ипотека 1% на 2 года (Металлинвест)",0.01,0.06,2.0,30.0,0.201,9000000.0,0.102,"Все лоты"],["ДМД 1 оч.","IT ипотека","IT ипотека 6%",0.06,0.06,0.0,30.0,0.201,9000000.0,0.0,"Все лоты"],["ДМД 1 оч.","IT ипотека","Субсид IT ипотека 4,6% на весь срок (Сбер)",0.046,0.06,0.0,30.0,0.201,9000000.0,0.09,"Все лоты"],["ДМД 1 оч.","IT ипотека","Субсид IT ипотека 3% на 3 года (Сбер)",0.03,0.06,3.0,30.0,0.201,9000000.0,0.091,"Все лоты"],["ДМД 1 оч.","IT ипотека","Субсид IT ипотека 4,5% на весь срок (Металлинвест)",0.045,0.045,0.0,30.0,0.201,9000000.0,0.095,"Все лоты"],["ДМД 2 оч.","IT ипотека","Субсид IT ипотека 3,5% на весь срок (Металлинвест)",0.035,0.035,0.0,30.0,0.201,9000000.0,0.161,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (Уралсиб)",0.1819,0.1819,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (ДОМ.РФ)",0.173,0.173,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (Сбербанк)",0.192,0.192,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (Совком)",0.1899,0.1899,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Стандартная ипотека (Альфа)",0.19,0.19,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 8% на 2 года (Сбер)",0.08,0.192,2.0,30.0,0.201,100000000,0.172,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 12,1% на весь срок (ВТБ)",0.121,0.121,0.0,30.0,0.201,100000000,0.1761,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 11,9% на весь срок (ДОМ.РФ)",0.119,0.119,0.0,30.0,0.201,100000000,0.1546,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 12,49% на весь срок (Совком)",0.1249,0.1249,0.0,20.0,0.201,100000000,0.1249,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (Уралсиб)",0.1819,0.1819,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (ДОМ.РФ)",0.173,0.173,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (Сбербанк)",0.197,0.197,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (МКБ)",0.189,0.189,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Стандартная ипотека (Альфа)",0.19,0.19,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 8,3% на 2 года (Сбер)",0.083,0.197,2.0,30.0,0.201,100000000,0.175,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 7,7% на 2 года (Металлинвест)",0.077,0.189,2.0,30.0,0.201,100000000,0.1758,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 12,1% на весь срок (ВТБ)",0.121,0.121,0.0,30.0,0.201,100000000,0.1761,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 12,49% на весь срок (Совком)",0.1249,0.1249,0.0,20.0,0.201,100000000,0.1249,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 6% на 2 года (МКБ)",0.06,0.189,2.0,30.0,0.201,100000000,0.175,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 11,9% на весь срок (ДОМ.РФ)",0.119,0.119,0.0,30.0,0.201,100000000,0.1395,"Все лоты"],["Алиса 1 оч.","Ипотека для всех","Субсид станд ипотека 8,2% на 3 года (ДОМ.РФ)",0.082,0.173,3.0,30.0,0.201,100000000,0.1705,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (Уралсиб)",0.1819,0.1819,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (ДОМ.РФ)",0.173,0.173,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (Сбербанк)",0.197,0.197,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (МКБ)",0.189,0.189,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (Совком)",0.1899,0.1899,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Стандартная ипотека (Альфа)",0.19,0.19,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 5,4% на 1 год (Сбер)",0.054,0.197,1.0,30.0,0.201,100000000,0.125,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 12,49% на весь срок (Совком)",0.1249,0.1249,0.0,20.0,0.201,100000000,0.1249,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 10,4% на 3 года (ДОМ.РФ)",0.104,0.173,3.0,30.0,0.201,100000000,0.1199,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 8,6% на 2 года (ДОМ.РФ)",0.086,0.173,2.0,30.0,0.201,100000000,0.1251,"Все лоты"],["ДНК 1 оч.","Ипотека для всех","Субсид станд ипотека 12,3% на весь срок (ДОМ.РФ)",0.123,0.123,0.0,30.0,0.201,100000000,0.1255,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (Уралсиб)",0.1819,0.1819,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (ДОМ.РФ)",0.173,0.173,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (Сбербанк)",0.192,0.192,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (МКБ)",0.189,0.189,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (Совком)",0.1899,0.1899,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Стандартная ипотека (Альфа)",0.19,0.19,0.0,30.0,0.201,30000000,0.0,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Субсид станд ипотека 7,4% на 1 год (Сбер)",0.074,0.192,1.0,30.0,0.3,100000000,0.1,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Субсид станд ипотека 0,99% на 1 год (МКБ)",0.0099,0.189,1.0,30.0,0.5,100000000,0.14,"Все лоты"],["ДМД 1 оч.","Ипотека для всех","Субсид станд ипотека 10% на 2 года (МКБ)",0.1,0.189,2.0,30.0,0.5,100000000,0.14,"Все лоты"],["ДМД 2 оч.","Ипотека для всех","Субсид станд ипотека 8,7% на 3 года (ДОМ.РФ)",0.087,0.173,3.0,30.0,0.201,100000000,0.1741,"Все лоты"]]};
+  var SNAPDATE = '30.09.2026';
+
+  var FAMILY = 'Семейная ипотека';
+  var OK = 'Применяется';
+
+  /* ================== ДАННЫЕ ================== */
+  function num(v) { return typeof v === 'number' && isFinite(v) ? v : 0; }
+
+  function normalize(raw) {
+    var programs = (raw.programs || []).filter(function (r) { return r && r[0] && r[2]; }).map(function (r) {
+      return {
+        proj: String(r[0]).trim(), type: String(r[1] || '').trim(), name: String(r[2]).trim(),
+        r1: num(r[3]), r2: num(r[4]), grace: num(r[5]), term: num(r[6]), mpv: num(r[7]),
+        lim: num(r[8]), sub: num(r[9]), restr: typeof r[10] === 'number' ? r[10] : null
+      };
+    });
+    var family = (raw.family || []).filter(function (r) { return r && r[0]; }).map(function (r) {
+      return { name: String(r[0]).trim(), r1: num(r[1]), r2: num(r[2]), grace: num(r[3]), term: num(r[4]), mpv: num(r[5]), lim: num(r[6]) };
+    });
+    var withPrograms = {};
+    programs.forEach(function (p) { withPrograms[p.proj] = true; });
+    var projects = (raw.projects || []).map(function (p) { return String(p).trim(); }).filter(function (p) { return withPrograms[p]; });
+    programs.forEach(function (p) { if (projects.indexOf(p.proj) < 0) projects.push(p.proj); });
+    var types = (raw.types && raw.types.length ? raw.types : ['Семейная ипотека', 'IT ипотека', 'Ипотека для всех']).map(String);
+    var discounts = (raw.discounts || []).filter(function (d) { return typeof d === 'number'; });
+    if (!discounts.length) for (var i = 0; i <= 40; i++) discounts.push(i / 200);
+    return {
+      programs: programs, family: family, projects: projects, types: types, discounts: discounts,
+      tolerance: typeof raw.tolerance === 'number' ? raw.tolerance : 0.002,
+      threshold: typeof raw.threshold === 'number' ? raw.threshold : 0.01
+    };
+  }
+
+  function gviz(sheet, range, signal) {
+    var url = 'https://docs.google.com/spreadsheets/d/' + CONFIG.sheetId + '/gviz/tq?tqx=out:json&headers=0&sheet=' +
+      encodeURIComponent(sheet) + '&range=' + range;
+    return fetch(url, { cache: 'no-store', signal: signal }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    }).then(function (t) {
+      var j = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1));
+      if (j.status !== 'ok') throw new Error('gviz ' + j.status);
+      return j.table.rows.map(function (row) { return (row.c || []).map(function (c) { return c ? c.v : null; }); });
+    });
+  }
+
+  function loadLive() {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 10000);
+    var s = ctrl ? ctrl.signal : undefined;
+    return Promise.all([
+      gviz('Программы', 'A5:K300', s),
+      gviz('Условия семейки', 'A4:G8', s),
+      gviz('Справочники', 'A4:F44', s)
+    ]).then(function (res) {
+      clearTimeout(timer);
+      var lst = res[2];
+      var col = function (i) { return lst.map(function (r) { return r[i]; }).filter(function (v) { return v !== null && v !== ''; }); };
+      var d = normalize({
+        programs: res[0], family: res[1], projects: col(0), types: col(1), discounts: col(2),
+        tolerance: lst[0] && lst[0][5], threshold: lst[2] && lst[2][5]
+      });
+      if (!d.programs.length || d.family.length < 5) throw new Error('пустые данные');
+      return d;
+    });
+  }
+
+  /* ================== РАСЧЁТ (повторяет формулы листа «Калькулятор») ================== */
+  function p15(x) { return +x.toPrecision(15); }
+  function round0(x) { return x < 0 ? -Math.round(p15(-x)) : Math.round(p15(x)); }
+  function round6(x) { return round0(x * 1e6) / 1e6; }
+  function roundup0(x) { return x < 0 ? -Math.ceil(p15(-x)) : Math.ceil(p15(x)); }
+  function PMT(r, n, loan) { return r === 0 ? loan / n : loan * r / (1 - Math.pow(1 + r, -n)); }
+  function balance(r, n, pay, loan) { // = FV(r; n; pay; -loan)
+    if (r === 0) return loan - pay * n;
+    var f = Math.pow(1 + r, n);
+    return loan * f - pay * (f - 1) / r;
+  }
+
+  function compute(D, inp) {
+    var fam = inp.type === FAMILY;
+    var kidIdx = -1;
+    for (var k = 0; k < D.family.length; k++) if (D.family[k].name === inp.kids) { kidIdx = k; break; }
+    var F = D.family[kidIdx < 0 ? 0 : kidIdx];
+    var base = inp.base, BT = inp.base + inp.finish;
+    var pvIn = inp.pv || 0;
+    var list = D.programs.filter(function (p) { return p.proj === inp.project && p.type === inp.type; });
+
+    var rows = list.map(function (p, i) {
+      var r1 = fam ? F.r1 : p.r1;
+      var gn = round0((fam ? F.grace : p.grace) * 12);
+      var r2 = fam ? F.r2 : (p.grace === 0 ? r1 : p.r2);
+      var maxTerm = fam ? F.term : p.term;
+      var term = inp.term != null ? Math.min(Math.max(inp.term, 1), maxTerm) : maxTerm;
+      var mpv = fam ? Math.max(p.mpv, F.mpv) : p.mpv;
+      var lim = fam ? F.lim : p.lim;
+      var sub = p.sub;
+      // шаг 1 — субсидия по базовой цене
+      var pv0 = Math.min(Math.max(pvIn, roundup0(BT * mpv), BT - lim), BT);
+      var sub0 = (BT - pv0) * sub;
+      var subp = base > 0 ? sub0 / base : 0;
+      // шаг 2 — итоговая цена с порогом скидки
+      var praw = Math.min(round0(base * (1 - inp.disc) + sub0 + inp.finish), BT);
+      var price = round6(1 - praw / BT) < D.threshold ? BT : praw;
+      var disc = BT > 0 ? 1 - price / BT : 0;
+      var mpvr = Math.max(roundup0(price * mpv), price - lim);
+      var pv = Math.min(Math.max(pvIn, mpvr), price);
+      var loan = price - pv;
+      var subr = loan * sub;
+      var status = loan <= 0 ? 'Кредит не нужен'
+        : (p.restr != null && base < p.restr) ? 'Не подходит для квартиры'
+        : sub === 0 ? OK
+        : subp <= inp.disc + D.tolerance + 1e-12 ? OK : 'Не применяется';
+      var X = term * 12;
+      var gm = Math.min(gn, X);
+      var p1 = loan <= 0 || X <= 0 ? 0 : PMT(r1 / 12, X, loan);
+      var bal = gm === 0 || loan <= 0 ? 0 : balance(r1 / 12, gm, p1, loan);
+      var p2 = gm === 0 ? p1 : (X - gm <= 0 ? 0 : PMT(r2 / 12, X - gm, bal));
+      var tot = gm === 0 ? p1 * X : p1 * gm + p2 * (X - gm);
+      var over = Math.max(tot - loan, 0);
+      var note = status === 'Не применяется' ? 'Субсидия больше скидки'
+        : pv > pvIn + 0.5 ? (pvIn === 0 ? 'Взят минимальный ПВ' : 'ПВ увеличен до минимума')
+        : (inp.term != null && inp.term > term) ? 'Срок снижен до максимального' : '';
+      return {
+        n: i + 1, name: fam ? p.name + ' — ' + inp.kids : p.name, r1: r1, r2: r2, gm: gm, term: term, mpv: mpv, lim: lim,
+        sub: sub, subp: subp, status: status, price: price, disc: disc, mpvr: mpvr, pv: pv, loan: loan, subr: subr,
+        p1: p1, p2: p2, bal: bal, tot: tot, over: over, note: note, pvUp: pvIn > 0 && pv > pvIn + 0.5
+      };
+    });
+
+    // выбор программы для подробного расчёта
+    var sel = 0;
+    if (inp.prog != null) {
+      sel = inp.prog >= 1 && inp.prog <= rows.length ? inp.prog : 0;
+    } else {
+      var best = function (pred) {
+        var b = 0, m = Infinity;
+        rows.forEach(function (r) { if (pred(r) && r.p1 < m) { m = r.p1; b = r.n; } });
+        return b;
+      };
+      sel = best(function (r) { return r.status === OK && r.pv <= pvIn + 0.5; }) ||
+            best(function (r) { return r.status === OK; }) || (rows.length ? 1 : 0);
+    }
+    var alerts = [];
+    if (rows.length && !rows.some(function (r) { return r.status === OK; }))
+      alerts.push('При выбранной скидке нет применимых программ — увеличьте скидку или смените тип ипотеки');
+    if (inp.prog != null && sel > 0 && rows[sel - 1].status !== OK)
+      alerts.push('Внимание: выбранная программа не применяется при текущей скидке');
+    return { rows: rows, sel: sel, alerts: alerts };
+  }
+
+  /* ================== ФОРМАТИРОВАНИЕ ================== */
+  var nf0 = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
+  var nfp = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 });
+  var nfp1 = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 });
+  function rub(v) { return nf0.format(Math.round(v)) + ' ₽'; }
+  function pct(v) { return nfp.format(p15(v * 100)) + '%'; }
+  function pct1(v) { return nfp1.format(v * 100) + '%'; }
+  function plural(n, a, b, c) { var m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? b : c); }
+  function years(y) { return nfp1.format(y) + ' ' + (Number.isInteger(y) ? plural(y, 'год', 'года', 'лет') : 'года'); }
+  function period(m) { if (!m) return 'нет'; return m % 12 === 0 ? years(m / 12) : m + ' мес.'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function parseMoney(s) { var d = String(s).replace(/[^\d]/g, ''); return d ? parseInt(d, 10) : null; }
+  function badge(st) { return '<span class="ipc-badge ' + (st === OK ? 'ok' : 'bad') + '">' + esc(st) + '</span>'; }
+
+  /* ================== ИНТЕРФЕЙС ================== */
+  var root = document.getElementById('ipoteka-calc');
+  if (!root) return;
+  var $ = function (id) { return document.getElementById(id); };
+  var el = {
+    project: $('ipc-project'), flat: $('ipc-flat'), price: $('ipc-price'), finish: $('ipc-finish'), disc: $('ipc-disc'),
+    discprice: $('ipc-discprice'), type: $('ipc-type'), kids: $('ipc-kids'), pv: $('ipc-pv'), term: $('ipc-term'),
+    alert: $('ipc-alert'), detail: $('ipc-detail'), thead: $('ipc-thead'), tbody: $('ipc-tbody'), title: $('ipc-table-title'),
+    pickinfo: $('ipc-pickinfo'), notes: $('ipc-notes'), source: $('ipc-source')
+  };
+  var D = null;
+  var state = { type: CONFIG.defaults.type, prog: null };
+
+  function fillSelect(sel, items, value, label) {
+    sel.innerHTML = items.map(function (it) {
+      var v = String(it);
+      return '<option value="' + esc(v) + '"' + (it === value ? ' selected' : '') + '>' + esc(label ? label(it) : v) + '</option>';
+    }).join('');
+  }
+
+  function setupControls(keep) {
+    var project = keep ? el.project.value : CONFIG.defaults.project;
+    if (D.projects.indexOf(project) < 0) project = D.projects[0];
+    fillSelect(el.project, D.projects, project);
+
+    var disc = keep ? parseFloat(el.disc.value) : CONFIG.defaults.discount;
+    var near = D.discounts.reduce(function (a, b) { return Math.abs(b - disc) < Math.abs(a - disc) ? b : a; }, D.discounts[0]);
+    fillSelect(el.disc, D.discounts, near, pct);
+
+    var kids = keep ? el.kids.value : CONFIG.defaults.kids;
+    var names = D.family.map(function (f) { return f.name; });
+    if (names.indexOf(kids) < 0) kids = names[0];
+    fillSelect(el.kids, names, kids);
+
+    if (D.types.indexOf(state.type) < 0) state.type = D.types[0];
+    el.type.innerHTML = D.types.map(function (t) {
+      return '<button type="button" data-type="' + esc(t) + '" aria-pressed="' + (t === state.type) + '">' + esc(t) + '</button>';
+    }).join('');
+
+    if (!keep) {
+      el.price.value = CONFIG.defaults.price ? nf0.format(CONFIG.defaults.price) : '';
+      el.term.value = CONFIG.defaults.term || '';
+    }
+  }
+
+  function readInputs() {
+    var term = parseFloat(String(el.term.value).replace(',', '.'));
+    return {
+      project: el.project.value, type: state.type, kids: el.kids.value,
+      base: parseMoney(el.price.value) || 0, finish: parseMoney(el.finish.value) || 0,
+      disc: parseFloat(el.disc.value) || 0, pv: parseMoney(el.pv.value),
+      term: isFinite(term) && term > 0 ? term : null, prog: state.prog
+    };
+  }
+
+  function render() {
+    var inp = readInputs();
+    el.kids.disabled = inp.type !== FAMILY;
+    el.discprice.textContent = inp.base ? rub(round0(inp.base * (1 - inp.disc))) : '—';
+    el.title.textContent = 'Все программы: ' + inp.project + ', ' + inp.type.toLowerCase();
+
+    if (!inp.base) {
+      el.alert.textContent = '';
+      el.detail.innerHTML = '<p class="ipc-static">Укажите стоимость квартиры.</p>';
+      el.tbody.innerHTML = ''; el.thead.innerHTML = ''; el.pickinfo.textContent = '';
+      postHeight();
+      return;
+    }
+    var res = compute(D, inp);
+    el.alert.innerHTML = res.alerts.map(esc).join('<br>');
+    renderDetail(inp, res);
+    renderTable(res);
+    el.pickinfo.innerHTML = state.prog != null
+      ? 'Программа выбрана вручную · <button type="button" class="ipc-link" id="ipc-auto">вернуть автоподбор</button>'
+      : 'Нажмите на строку, чтобы посмотреть расчёт по программе';
+    postHeight();
+  }
+
+  function renderDetail(inp, res) {
+    if (!res.sel) { el.detail.innerHTML = '<p class="ipc-static">Для выбранного проекта и типа ипотеки программ нет.</p>'; return; }
+    var r = res.rows[res.sel - 1];
+    var grace = r.gm > 0;
+    var dl = [];
+    var add = function (k, v, strong) { dl.push('<dt' + (strong ? ' class="ipc-strong"' : '') + '>' + k + '</dt><dd' + (strong ? ' class="ipc-strong"' : '') + '>' + v + '</dd>'); };
+    add('Ставка' + (grace ? ' в льготный период' : ''), pct(r.r1));
+    if (grace) { add('Ставка после льготного периода', pct(r.r2)); add('Льготный период', period(r.gm)); }
+    add('Срок ипотеки', years(r.term));
+    add('Итоговая цена квартиры', rub(r.price), true);
+    add('Итоговая скидка', pct1(r.disc) + ' · ' + rub(inp.base + inp.finish - r.price));
+    add('Минимальный ПВ', rub(r.mpvr));
+    add('Первоначальный взнос в расчёте', rub(r.pv) + ' · ' + pct1(r.price ? r.pv / r.price : 0), true);
+    add('Сумма кредита', rub(r.loan), true);
+    if (grace) add('Остаток долга после льготного периода', rub(r.bal));
+    add('Итого выплат банку', rub(r.tot));
+    add('Переплата (проценты)', rub(r.over));
+    add('Полная стоимость (ПВ + выплаты)', rub(r.pv + r.tot), true);
+    if (CONFIG.showInternal) add('Субсидия застройщика банку', rub(r.subr) + ' · ' + pct(r.sub));
+
+    var flat = el.flat.value.trim();
+    var head = '<div class="ipc-hero">' +
+      '<div class="ipc-prog">' + esc(r.name) + '</div>' +
+      '<div style="margin-bottom:10px">' + badge(r.status) + (flat ? ' <span class="ipc-static">· кв. ' + esc(flat) + '</span>' : '') + '</div>' +
+      '<div class="ipc-pay">' +
+        '<div><div class="ipc-k">' + (grace ? 'Платёж в льготный период' : 'Ежемесячный платёж') + '</div><div class="ipc-v">' + rub(r.p1) + '</div></div>' +
+        (grace ? '<div><div class="ipc-k">Платёж после льготного периода</div><div class="ipc-v ipc-sm">' + rub(r.p2) + '</div></div>' : '') +
+      '</div></div>';
+    el.detail.innerHTML = head + '<dl>' + dl.join('') + '</dl>' + (r.note ? '<div class="ipc-note">' + esc(r.note) + '</div>' : '');
+  }
+
+  function renderTable(res) {
+    var cols = [
+      ['№', function (r) { return r.n; }],
+      ['Программа', function (r) { return esc(r.name); }],
+      ['Ставка', function (r) { return pct(r.r1) + (r.gm ? '<span class="ipc-s2">далее ' + pct(r.r2) + '</span>' : ''); }],
+      ['Льготный период', function (r) { return period(r.gm); }],
+      ['Срок', function (r) { return years(r.term); }],
+      ['Итоговая цена', function (r) { return rub(r.price) + '<span class="ipc-s2">скидка ' + pct1(r.disc) + '</span>'; }],
+      ['ПВ', function (r) { return '<span' + (r.pvUp ? ' class="ipc-pvup"' : '') + '>' + rub(r.pv) + '</span><span class="ipc-s2">мин. ' + pct1(r.mpv) + '</span>'; }],
+      ['Кредит', function (r) { return rub(r.loan); }],
+      ['Платёж', function (r) { return '<b>' + rub(r.p1) + '</b>' + (r.gm ? '<span class="ipc-s2">далее ' + rub(r.p2) + '</span>' : ''); }],
+      ['Переплата', function (r) { return rub(r.over); }]
+    ];
+    if (CONFIG.showInternal) cols.push(['Субсидия банку', function (r) { return rub(r.subr) + '<span class="ipc-s2">' + pct(r.sub) + ' кредита</span>'; }]);
+    cols.push(['Статус', function (r) { return badge(r.status); }]);
+
+    el.thead.innerHTML = '<tr>' + cols.map(function (c) { return '<th>' + c[0] + '</th>'; }).join('') + '</tr>';
+    el.tbody.innerHTML = res.rows.map(function (r) {
+      var cls = (r.n === res.sel ? 'ipc-sel' : '') + (r.status !== OK ? ' ipc-na' : '');
+      return '<tr data-n="' + r.n + '" class="' + cls + '" tabindex="0">' +
+        cols.map(function (c) { return '<td data-l="' + c[0] + '"><span>' + c[1](r) + '</span></td>'; }).join('') + '</tr>';
+    }).join('');
+  }
+
+  function renderNotes() {
+    var n = [
+      'Тип «Ипотека для всех» объединяет стандартные и субсидированные стандартные программы.',
+      'Семейная ипотека: ставки, льготный период, срок и лимит кредита зависят от количества детей. Хотя бы одному ребёнку на момент заключения договора должно быть меньше 7 лет. Новые условия действуют для договоров с 1 октября 2026 года, программа продлена до конца 2030 года.',
+      'Первоначальный взнос — не меньше минимального: большее из «мин. ПВ %» и «цена − лимит кредита».',
+      'Платёж аннуитетный. В льготный период — по льготной ставке на весь срок, после — пересчёт на остаток долга по основной ставке.'
+    ];
+    if (CONFIG.showInternal) n.splice(2, 0,
+      'Субсидия банку оплачивается из скидки клиента: итоговая цена = цена со скидкой + субсидия + отделка, но не выше базовой цены + отделка. Если итоговая скидка меньше ' + pct1(D.threshold) + ', клиент платит базовую цену.',
+      'Субсидированная программа применяется, если субсидия в % от базовой цены не превышает скидку + ' + pct(D.tolerance) + '. Программы без субсидии применяются всегда.');
+    n.push('Расчёт ориентировочный: итоговые условия, страхование и комиссии определяет банк.');
+    el.notes.innerHTML = n.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('');
+  }
+
+  function postHeight() {
+    if (window.parent === window) return;
+    try { window.parent.postMessage({ ipotekaCalcHeight: Math.ceil(document.documentElement.scrollHeight) }, '*'); } catch (e) {}
+  }
+
+  function moneyInput(input) {
+    input.addEventListener('input', function () {
+      var v = parseMoney(input.value);
+      var pos = input.value.length - input.selectionStart;
+      input.value = v == null ? '' : nf0.format(v);
+      try { var p = Math.max(0, input.value.length - pos); input.setSelectionRange(p, p); } catch (e) {}
+      render();
+    });
+  }
+
+  function bind() {
+    [el.price, el.finish, el.pv].forEach(moneyInput);
+    [el.project, el.disc, el.kids].forEach(function (s) { s.addEventListener('change', function () { if (s === el.project) state.prog = null; render(); }); });
+    el.term.addEventListener('input', render);
+    el.flat.addEventListener('input', render);
+    el.type.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-type]'); if (!b) return;
+      state.type = b.getAttribute('data-type'); state.prog = null;
+      Array.prototype.forEach.call(el.type.children, function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      render();
+    });
+    var pick = function (e) { var tr = e.target.closest('tr[data-n]'); if (!tr) return; state.prog = +tr.getAttribute('data-n'); render(); };
+    el.tbody.addEventListener('click', pick);
+    el.tbody.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(e); } });
+    root.addEventListener('click', function (e) { if (e.target.id === 'ipc-auto') { state.prog = null; render(); } });
+    $('ipc-print').addEventListener('click', function () { window.print(); });
+    window.addEventListener('resize', postHeight);
+  }
+
+  function useData(data, source) {
+    var first = !D;
+    D = data;
+    setupControls(!first);
+    renderNotes();
+    el.source.textContent = source;
+    render();
+  }
+
+  window.IpotekaCalc = { compute: compute, normalize: normalize, data: function () { return D; } };
+
+  useData(normalize(SNAPSHOT), 'Данные программ на ' + SNAPDATE);
+  bind();
+  if (CONFIG.liveData && window.fetch) {
+    loadLive().then(function (d) {
+      var now = new Date();
+      useData(d, 'Данные программ актуальны на ' + now.toLocaleDateString('ru-RU'));
+    }).catch(function () { /* остаёмся на встроенной копии */ });
+  }
+})();
+</script>
+<!-- ===== ВСТАВКА НА САЙТ: КОНЕЦ ===== -->
+
+</body>
+</html>
