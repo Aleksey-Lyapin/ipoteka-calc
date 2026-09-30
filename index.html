@@ -146,7 +146,7 @@
 #ipoteka-calc summary { cursor: pointer; color: var(--ipc-text); font-weight: 600; font-size: 14px; }
 #ipoteka-calc details ul { padding-left: 18px; margin: 12px 0 0; }
 #ipoteka-calc details li { margin-bottom: 6px; }
-#ipoteka-calc .ipc-foot { margin-top: 16px; font-size: 12px; color: var(--ipc-faint); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+#ipoteka-calc .ipc-foot { margin-top: 16px; font-size: 12px; color: var(--ipc-faint); display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 12px; }
 #ipoteka-calc .ipc-btn {
   font: inherit; font-size: 14px; font-weight: 600; border: 0; background: var(--ipc-red); color: #FFFFFF;
   border-radius: 100px; padding: 0 24px; height: 44px; cursor: pointer; transition: background .15s;
@@ -325,7 +325,6 @@
   </details>
 
   <div class="ipc-foot">
-    <span id="ipc-source"></span>
     <div class="ipc-actions">
       <span class="ipc-savemsg" id="ipc-savemsg" role="status"></span>
       <button type="button" class="ipc-btn ipc-btn-2" id="ipc-print">Распечатать расчёт</button>
@@ -348,8 +347,6 @@
     showInternal: false,
     // true — логотип BAZA справа от заголовка. При вставке прямо на baza.bz, где логотип уже есть в шапке сайта, поставьте false
     showLogo: true,
-    // Название таблицы-источника — показывается внизу калькулятора
-    sourceName: 'Ипотечный калькулятор_Екб',
     // Значения по умолчанию
     defaults: { project: 'ДМД 2 оч.', price: 15000000, discount: 0.14, type: 'Ипотека для всех', kids: 'двое детей', term: 30 }
   }, window.IPOTEKA_CALC_CONFIG || {});
@@ -542,7 +539,7 @@
     project: $('ipc-project'), flat: $('ipc-flat'), price: $('ipc-price'), finish: $('ipc-finish'), disc: $('ipc-disc'),
     discprice: $('ipc-discprice'), type: $('ipc-type'), kids: $('ipc-kids'), pv: $('ipc-pv'), term: $('ipc-term'),
     alert: $('ipc-alert'), detail: $('ipc-detail'), thead: $('ipc-thead'), tbody: $('ipc-tbody'), title: $('ipc-table-title'),
-    pickinfo: $('ipc-pickinfo'), notes: $('ipc-notes'), source: $('ipc-source'), save: $('ipc-save'), savemsg: $('ipc-savemsg')
+    pickinfo: $('ipc-pickinfo'), notes: $('ipc-notes'), save: $('ipc-save'), savemsg: $('ipc-savemsg')
   };
   if (!CONFIG.showLogo) $('ipc-logo').hidden = true;
   var D = null;
@@ -765,7 +762,7 @@
       '</div>' +
       '<div class="ipc-r-card ipc-r-table"><div class="ipc-r-h">' + esc(el.title.textContent) + '</div>' +
         '<table><thead>' + el.thead.innerHTML + '</thead><tbody>' + el.tbody.innerHTML + '</tbody></table></div>' +
-      '<div class="ipc-r-foot">' + esc(el.source.textContent) + '. Расчёт ориентировочный: итоговые условия, страхование и комиссии определяет банк.</div>';
+      '<div class="ipc-r-foot">Расчёт ориентировочный: итоговые условия, страхование и комиссии определяет банк.</div>';
     var file = ('Расчёт ипотеки ' + inp.project + (flat ? ' кв ' + flat : '') + ' ' + now.toLocaleDateString('ru-RU'))
       .replace(/[\\/:*?"<>|]+/g, '-') + '.pdf';
     return { el: div, file: file };
@@ -826,20 +823,17 @@
     D = data;
     setupControls(!first);
     renderNotes();
-    el.source.textContent = source;
+    window.IpotekaCalc.source = source; // служебная отметка, на странице не показывается
     render();
   }
 
   window.IpotekaCalc = { compute: compute, normalize: normalize, data: function () { return D; }, pdfOptions: pdfOptions, buildReport: buildReport, logoPng: logoPng, loadPdfLib: loadH2P };
 
-  var SRC = 'Google Таблица «' + CONFIG.sourceName + '», листы «Программы» и «Условия семейки»';
-  useData(normalize(SNAPSHOT), 'Источник данных: ' + SRC + ' (копия от ' + SNAPDATE + ')');
+  useData(normalize(SNAPSHOT), 'копия от ' + SNAPDATE);
   bind();
   if (CONFIG.liveData && window.fetch) {
     loadLive().then(function (d) {
-      var now = new Date();
-      useData(d, 'Источник данных: ' + SRC + '. Загружено ' + now.toLocaleDateString('ru-RU') + ' в ' +
-        now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }));
+      useData(d, 'таблица, ' + new Date().toLocaleString('ru-RU'));
     }).catch(function () { /* остаёмся на встроенной копии */ });
   }
 })();
