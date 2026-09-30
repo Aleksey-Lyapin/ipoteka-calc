@@ -272,10 +272,6 @@
           <label for="ipc-disc">Скидка на квартиру</label>
           <div class="ipc-suffix"><input id="ipc-disc" type="text" inputmode="decimal" autocomplete="off" placeholder="0"><span aria-hidden="true">%</span></div>
         </div>
-        <div class="ipc-field">
-          <label>Цена со скидкой</label>
-          <div class="ipc-static" style="height:48px;display:flex;align-items:center"><b id="ipc-discprice">—</b></div>
-        </div>
       </div>
       <div class="ipc-field">
         <label id="ipc-type-l">Тип ипотеки</label>
@@ -538,7 +534,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var el = {
     project: $('ipc-project'), flat: $('ipc-flat'), price: $('ipc-price'), finish: $('ipc-finish'), disc: $('ipc-disc'),
-    discprice: $('ipc-discprice'), type: $('ipc-type'), kids: $('ipc-kids'), pv: $('ipc-pv'), term: $('ipc-term'),
+    type: $('ipc-type'), kids: $('ipc-kids'), pv: $('ipc-pv'), term: $('ipc-term'),
     alert: $('ipc-alert'), detail: $('ipc-detail'), thead: $('ipc-thead'), tbody: $('ipc-tbody'), title: $('ipc-table-title'),
     pickinfo: $('ipc-pickinfo'), notes: $('ipc-notes'), save: $('ipc-save'), savemsg: $('ipc-savemsg')
   };
@@ -589,7 +585,6 @@
   function render() {
     var inp = readInputs();
     el.kids.disabled = inp.type !== FAMILY;
-    el.discprice.textContent = inp.base ? rub(round0(inp.base * (1 - inp.disc))) : '—';
     el.title.textContent = 'Все программы: ' + inp.project + ', ' + inp.type.toLowerCase();
 
     if (!inp.base) {
@@ -791,7 +786,6 @@
     add('Стоимость квартиры', rub(inp.base), true);
     if (inp.finish) add('Отделка', rub(inp.finish));
     add('Скидка на квартиру', pct(inp.disc));
-    add('Цена со скидкой', rub(round0(inp.base * (1 - inp.disc))));
     add('Тип ипотеки', esc(inp.type));
     if (inp.type === FAMILY) add('Количество детей', esc(inp.kids));
     add('Первоначальный взнос', inp.pv ? rub(inp.pv) : 'минимальный');
