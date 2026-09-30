@@ -161,6 +161,7 @@
 /* Отчёт для PDF (лист A4 альбомный). Собирается отдельно от экрана, всегда в светлой теме */
 .ipc-report { font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #002346; background: #F5F8FB; font-size: 13px; line-height: 1.4; padding: 18px; -webkit-font-smoothing: antialiased; }
 .ipc-report * { box-sizing: border-box; }
+.ipc-report.ipc-r-page { box-sizing: border-box; width: 1123px; min-height: 794px; padding: 28px 32px; }
 .ipc-report .ipc-r-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px; }
 .ipc-report .ipc-r-title { font-size: 28px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.1; }
 .ipc-report .ipc-r-meta { font-size: 13px; color: #5f7690; margin-top: 4px; }
@@ -171,7 +172,7 @@
 .ipc-report dl { margin: 0; display: grid; grid-template-columns: 1fr auto; }
 .ipc-report dt, .ipc-report dd { margin: 0; padding: 5px 0; border-bottom: 1px solid #D8E6F4; }
 .ipc-report dt { color: #5f7690; padding-right: 10px; }
-.ipc-report dd { text-align: right; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ipc-report dd { text-align: right; font-weight: 500; white-space: nowrap; font-variant-numeric: normal; }
 .ipc-report .ipc-strong { color: #002346; font-weight: 700; }
 .ipc-report .ipc-hero { background: #002346; color: #FFFFFF; border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; }
 .ipc-report .ipc-hero .ipc-static { color: rgba(255, 255, 255, 0.7); }
@@ -188,7 +189,7 @@
 .ipc-report .ipc-note { margin-top: 8px; font-size: 12px; color: #E66400; }
 .ipc-report table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
 .ipc-report th { color: #6C8DAF; font-weight: 500; font-size: 10.5px; text-align: right; padding: 0 5px 6px; border-bottom: 1px solid #D8E6F4; vertical-align: bottom; }
-.ipc-report td { padding: 7px 5px; border-bottom: 1px solid #D8E6F4; text-align: right; white-space: nowrap; vertical-align: top; font-variant-numeric: tabular-nums; }
+.ipc-report td { padding: 7px 5px; border-bottom: 1px solid #D8E6F4; text-align: right; white-space: nowrap; vertical-align: top; font-variant-numeric: normal; }
 .ipc-report th:first-child, .ipc-report td:first-child, .ipc-report th:nth-child(2), .ipc-report td:nth-child(2) { text-align: left; }
 .ipc-report td:first-child { color: #6C8DAF; }
 .ipc-report td:nth-child(2) { white-space: normal; font-weight: 500; }
@@ -692,19 +693,64 @@
     });
   }
 
-  /* ---------- Сохранение в PDF (библиотека html2pdf подгружается только по нажатию) ---------- */
-  var H2P_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-  var h2pLoading = null;
-  function loadH2P() {
-    if (window.html2pdf) return Promise.resolve();
-    if (!h2pLoading) h2pLoading = new Promise(function (res, rej) {
+  /* ---------- Сохранение в PDF ----------
+     Каждая страница отчёта рисуется отдельно (html2canvas) и кладётся на свой лист A4 (jsPDF).
+     Библиотеки подгружаются только по нажатию кнопки. От прокрутки и ширины экрана результат не зависит. */
+  var PDF_LIBS = [
+    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+  ];
+  var libsLoading = null;
+  function loadScript(src) {
+    return new Promise(function (res, rej) {
       var s = document.createElement('script');
-      s.src = H2P_SRC; s.async = true;
-      s.onload = function () { window.html2pdf ? res() : rej(new Error('html2pdf')); };
-      s.onerror = function () { h2pLoading = null; rej(new Error('load')); };
+      s.src = src; s.async = true;
+      s.onload = res; s.onerror = function () { rej(new Error('load ' + src)); };
       document.head.appendChild(s);
     });
-    return h2pLoading;
+  }
+  function loadPdfLibs() {
+    if (window.html2canvas && window.jspdf) return Promise.resolve();
+    if (!libsLoading) libsLoading = Promise.all(PDF_LIBS.map(loadScript)).then(function () {
+      if (!window.html2canvas || !window.jspdf) throw new Error('libs');
+    }).catch(function (e) { libsLoading = null; throw e; });
+    return libsLoading;
+  }
+
+  var PAGE_W = 1123, PAGE_H = 794; // A4 альбомный при 96 dpi
+
+  function renderPage(page) {
+    // Страница временно кладётся в левый верхний угол окна под содержимым сайта — посетитель её не видит
+    var host = document.createElement('div');
+    host.style.cssText = 'position:fixed;left:0;top:0;z-index:-2147483647;pointer-events:none;width:' + PAGE_W + 'px;';
+    host.appendChild(page);
+    document.body.appendChild(host);
+    var done = function () { if (host.parentNode) host.parentNode.removeChild(host); };
+    return window.html2canvas(page, {
+      scale: 2, backgroundColor: '#F5F8FB', useCORS: true, logging: false,
+      scrollX: 0, scrollY: 0, x: 0, y: 0, width: PAGE_W, height: Math.max(PAGE_H, page.offsetHeight),
+      windowWidth: PAGE_W + 200, windowHeight: Math.max(PAGE_H, page.offsetHeight) + 200
+    }).then(function (c) { done(); return c; }, function (e) { done(); throw e; });
+  }
+
+  function createPdf() {
+    return Promise.all([loadPdfLibs(), logoPng()]).then(function (r) {
+      var rep = buildReport(r[1]);
+      var canvases = [];
+      return rep.pages.reduce(function (p, page) {
+        return p.then(function () { return renderPage(page).then(function (c) { canvases.push(c); }); });
+      }, Promise.resolve()).then(function () {
+        var pdf = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+        var W = 297, H = 210;
+        canvases.forEach(function (c, i) {
+          if (i) pdf.addPage();
+          pdf.setFillColor(245, 248, 251); pdf.rect(0, 0, W, H, 'F');
+          var k = Math.min(W / c.width, H / c.height), w = c.width * k, h = c.height * k;
+          pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', (W - w) / 2, 0, w, h);
+        });
+        return { pdf: pdf, file: rep.file };
+      });
+    });
   }
 
   // Логотип для PDF переводим в PNG: html2canvas неверно рисует SVG (получается красный прямоугольник)
@@ -751,41 +797,34 @@
     add('Первоначальный взнос', inp.pv ? rub(inp.pv) : 'минимальный');
     add('Срок', inp.term ? years(inp.term) : 'максимальный');
 
-    var div = document.createElement('div');
-    div.className = 'ipc-report';
-    div.innerHTML =
-      '<div class="ipc-r-head"><div><div class="ipc-r-title">Расчёт ипотеки</div>' +
-        '<div class="ipc-r-meta">' + esc(inp.project) + (flat ? ' · кв. ' + esc(flat) : '') + ' · ' + ds + '</div></div>' + logoImg(png) + '</div>' +
+    var page = function (html) {
+      var d = document.createElement('div');
+      d.className = 'ipc-report ipc-r-page';
+      d.innerHTML = html;
+      return d;
+    };
+    var head = '<div class="ipc-r-head"><div><div class="ipc-r-title">Расчёт ипотеки</div>' +
+      '<div class="ipc-r-meta">' + esc(inp.project) + (flat ? ' · кв. ' + esc(flat) : '') + ' · ' + ds + '</div></div>' + logoImg(png) + '</div>';
+    var p1 = page(head +
       '<div class="ipc-r-grid">' +
         '<div class="ipc-r-card"><div class="ipc-r-h">Исходные данные</div><dl>' + rows.join('') + '</dl></div>' +
         '<div class="ipc-r-card"><div class="ipc-r-h">Расчёт выбранной программы</div>' + el.detail.innerHTML + '</div>' +
-      '</div>' +
-      '<div class="ipc-r-card ipc-r-table"><div class="ipc-r-h">' + esc(el.title.textContent) + '</div>' +
+      '</div>');
+    var p2 = page(
+      '<div class="ipc-r-card"><div class="ipc-r-h">' + esc(el.title.textContent) + '</div>' +
         '<table><thead>' + el.thead.innerHTML + '</thead><tbody>' + el.tbody.innerHTML + '</tbody></table></div>' +
-      '<div class="ipc-r-foot">Расчёт ориентировочный: итоговые условия, страхование и комиссии определяет банк.</div>';
+      '<div class="ipc-r-foot">Расчёт ориентировочный: итоговые условия, страхование и комиссии определяет банк.</div>');
     var file = ('Расчёт ипотеки ' + inp.project + (flat ? ' кв ' + flat : '') + ' ' + now.toLocaleDateString('ru-RU'))
       .replace(/[\\/:*?"<>|]+/g, '-') + '.pdf';
-    return { el: div, file: file };
-  }
-
-  function pdfOptions(file) {
-    return {
-      margin: [6, 6, 6, 6],
-      filename: file,
-      image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#F5F8FB' },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-      pagebreak: { mode: ['css'], before: '.ipc-r-table', avoid: ['tr', '.ipc-hero'] }
-    };
+    return { pages: [p1, p2], file: file };
   }
 
   function savePdf() {
     if (!readInputs().base) return;
     var btn = el.save, label = btn.textContent;
     btn.disabled = true; btn.textContent = 'Готовлю PDF…'; el.savemsg.textContent = '';
-    Promise.all([loadH2P(), logoPng()]).then(function (r) {
-      var rep = buildReport(r[1]);
-      return window.html2pdf().set(pdfOptions(rep.file)).from(rep.el).save();
+    createPdf().then(function (r) {
+      r.pdf.save(r.file);
     }).catch(function () {
       el.savemsg.textContent = 'Не удалось сохранить PDF. Нажмите «Распечатать расчёт» и выберите «Сохранить как PDF».';
     }).then(function () {
@@ -827,7 +866,7 @@
     render();
   }
 
-  window.IpotekaCalc = { compute: compute, normalize: normalize, data: function () { return D; }, pdfOptions: pdfOptions, buildReport: buildReport, logoPng: logoPng, loadPdfLib: loadH2P };
+  window.IpotekaCalc = { compute: compute, normalize: normalize, data: function () { return D; }, createPdf: createPdf };
 
   useData(normalize(SNAPSHOT), 'копия от ' + SNAPDATE);
   bind();
