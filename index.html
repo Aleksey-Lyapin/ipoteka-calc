@@ -76,6 +76,9 @@
   background-repeat: no-repeat; background-position: right 16px center;
 }
 #ipoteka-calc input::placeholder { color: var(--ipc-faint); }
+#ipoteka-calc .ipc-suffix { position: relative; }
+#ipoteka-calc .ipc-suffix input { padding-right: 40px; }
+#ipoteka-calc .ipc-suffix span { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--ipc-muted); pointer-events: none; font-size: 15px; }
 #ipoteka-calc input:hover, #ipoteka-calc select:hover { border-color: var(--ipc-faint); }
 #ipoteka-calc input:focus, #ipoteka-calc select:focus { outline: none; border-color: var(--ipc-accent); box-shadow: 0 0 0 3px var(--ipc-accent-soft); }
 #ipoteka-calc select:disabled, #ipoteka-calc input:disabled { background-color: var(--ipc-bg-soft); color: var(--ipc-faint); cursor: default; border-color: var(--ipc-line); }
@@ -219,11 +222,11 @@
       <div class="ipc-row2">
         <div class="ipc-field">
           <label for="ipc-disc">Скидка на квартиру</label>
-          <select id="ipc-disc"></select>
+          <div class="ipc-suffix"><input id="ipc-disc" type="text" inputmode="decimal" autocomplete="off" placeholder="0"><span aria-hidden="true">%</span></div>
         </div>
         <div class="ipc-field">
           <label>Цена со скидкой</label>
-          <div class="ipc-static" style="height:42px;display:flex;align-items:center"><b id="ipc-discprice">—</b></div>
+          <div class="ipc-static" style="height:48px;display:flex;align-items:center"><b id="ipc-discprice">—</b></div>
         </div>
       </div>
       <div class="ipc-field">
@@ -464,6 +467,19 @@
   function years(y) { return nfp1.format(y) + ' ' + (Number.isInteger(y) ? plural(y, 'год', 'года', 'лет') : 'года'); }
   function period(m) { if (!m) return 'нет'; return m % 12 === 0 ? years(m / 12) : m + ' мес.'; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // Скидка вводится вручную в процентах: «14», «7,5», «7.5». Разделитель — запятая, до 2 знаков, не больше 100
+  function cleanDisc(s) {
+    var t = String(s).replace(/\./g, ',').replace(/[^\d,]/g, '');
+    var i = t.indexOf(',');
+    if (i >= 0) t = t.slice(0, i + 1) + t.slice(i + 1).replace(/,/g, '').slice(0, 2);
+    if (i === 0) t = '0' + t;
+    if (parseFloat(t.replace(',', '.')) > 100) t = '100';
+    return t;
+  }
+  function parseDisc(s) {
+    var v = parseFloat(String(s).replace(',', '.'));
+    return isFinite(v) ? Math.min(Math.max(v, 0), 100) / 100 : 0;
+  }
   function parseMoney(s) { var d = String(s).replace(/[^\d]/g, ''); return d ? parseInt(d, 10) : null; }
   function badge(st) { return '<span class="ipc-badge ' + (st === OK ? 'ok' : 'bad') + '">' + esc(st) + '</span>'; }
 
@@ -493,9 +509,7 @@
     if (D.projects.indexOf(project) < 0) project = D.projects[0];
     fillSelect(el.project, D.projects, project);
 
-    var disc = keep ? parseFloat(el.disc.value) : CONFIG.defaults.discount;
-    var near = D.discounts.reduce(function (a, b) { return Math.abs(b - disc) < Math.abs(a - disc) ? b : a; }, D.discounts[0]);
-    fillSelect(el.disc, D.discounts, near, pct);
+    if (!keep) el.disc.value = CONFIG.defaults.discount ? nfp.format(p15(CONFIG.defaults.discount * 100)) : '';
 
     var kids = keep ? el.kids.value : CONFIG.defaults.kids;
     var names = D.family.map(function (f) { return f.name; });
@@ -518,7 +532,7 @@
     return {
       project: el.project.value, type: state.type, kids: el.kids.value,
       base: parseMoney(el.price.value) || 0, finish: parseMoney(el.finish.value) || 0,
-      disc: parseFloat(el.disc.value) || 0, pv: parseMoney(el.pv.value),
+      disc: parseDisc(el.disc.value), pv: parseMoney(el.pv.value),
       term: isFinite(term) && term > 0 ? term : null, prog: state.prog
     };
   }
@@ -632,7 +646,12 @@
 
   function bind() {
     [el.price, el.finish, el.pv].forEach(moneyInput);
-    [el.project, el.disc, el.kids].forEach(function (s) { s.addEventListener('change', function () { if (s === el.project) state.prog = null; render(); }); });
+    el.disc.addEventListener('input', function () {
+      var v = cleanDisc(el.disc.value);
+      if (v !== el.disc.value) el.disc.value = v;
+      render();
+    });
+    [el.project, el.kids].forEach(function (s) { s.addEventListener('change', function () { if (s === el.project) state.prog = null; render(); }); });
     el.term.addEventListener('input', render);
     el.flat.addEventListener('input', render);
     el.type.addEventListener('click', function (e) {
