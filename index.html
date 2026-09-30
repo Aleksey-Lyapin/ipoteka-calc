@@ -51,12 +51,11 @@
 }
 #ipoteka-calc *, #ipoteka-calc *::before, #ipoteka-calc *::after { box-sizing: border-box; }
 #ipoteka-calc [hidden] { display: none !important; }
-#ipoteka-calc .ipc-brand { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: var(--ipc-bg); border-radius: var(--ipc-radius); padding: 14px 24px; margin-bottom: 28px; }
-#ipoteka-calc .ipc-logo { display: block; line-height: 0; }
-#ipoteka-calc .ipc-logo-svg { display: block; height: 40px; width: auto; }
-#ipoteka-calc .ipc-brand-link { font-size: 14px; color: var(--ipc-text); text-decoration: none; border: 1px solid var(--ipc-line); border-radius: 100px; padding: 0 18px; height: 40px; display: inline-flex; align-items: center; white-space: nowrap; transition: border-color .15s; }
-#ipoteka-calc .ipc-brand-link:hover { border-color: var(--ipc-faint); }
-#ipoteka-calc .ipc-logo:focus-visible, #ipoteka-calc .ipc-brand-link:focus-visible { outline: 2px solid var(--ipc-red); outline-offset: 3px; border-radius: 6px; }
+#ipoteka-calc .ipc-brand { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+#ipoteka-calc .ipc-brand h2 { margin: 0; }
+#ipoteka-calc .ipc-logo { display: block; line-height: 0; flex-shrink: 0; }
+#ipoteka-calc .ipc-logo-svg { display: block; height: 52px; width: auto; }
+#ipoteka-calc .ipc-logo:focus-visible { outline: 2px solid var(--ipc-red); outline-offset: 3px; border-radius: 6px; }
 #ipoteka-calc h2 { font-size: 40px; line-height: 1.1; margin: 0 0 10px; font-weight: 500; letter-spacing: -0.02em; text-wrap: balance; }
 #ipoteka-calc h3 { font-size: 20px; line-height: 1.25; margin: 0 0 18px; font-weight: 700; letter-spacing: -0.01em; }
 #ipoteka-calc .ipc-sub { color: var(--ipc-muted); margin: 0 0 24px; max-width: 640px; font-size: 14px; }
@@ -157,10 +156,8 @@
 }
 @media (max-width: 640px) {
   #ipoteka-calc { padding: 16px; }
-  #ipoteka-calc .ipc-brand { padding: 12px 16px; margin-bottom: 20px; }
-  #ipoteka-calc .ipc-logo-svg { height: 32px; }
-  #ipoteka-calc .ipc-brand-link { height: 36px; padding: 0 14px; font-size: 13px; }
-  #ipoteka-calc h2 { font-size: 28px; }
+  #ipoteka-calc .ipc-logo-svg { height: 38px; }
+    #ipoteka-calc h2 { font-size: 28px; }
   #ipoteka-calc .ipc-card, #ipoteka-calc .ipc-tablewrap { padding: 18px; }
   #ipoteka-calc .ipc-row2 { grid-template-columns: 1fr; }
   #ipoteka-calc .ipc-pay .ipc-v { font-size: 30px; }
@@ -188,11 +185,10 @@
 </style>
 
 <div id="ipoteka-calc">
-  <header class="ipc-brand" id="ipc-brand">
-    <a class="ipc-logo" href="https://baza.bz/" target="_blank" rel="noopener"><svg class="ipc-logo-svg" viewBox="0 0 1920 1410" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BAZA Development"> <path fill="#E20617" d="M321.26 434.2c60.79-30.35 88.08-91.05 88.08-186.06v-32.99C409.33 72.63 348.55 2.69 207.13 2.69H1.19v923.72h214.62c136.46 0 207.17-76.54 207.17-219.05v-75.22c0-97.65-28.53-167.59-101.72-197.94zM137.66 134.65h65.75c48.38 0 69.47 29.04 69.47 95.01v51.46c0 73.89-31.02 97.65-81.88 97.65h-53.34v-244.13zm148.87 568.75c0 68.62-24.81 91.05-70.71 91.05h-78.16v-283.71h60.79c62.03 0 88.08 26.39 88.08 112.17v80.49zM607.94 2.69l-139.08 923.72h125.42l23.59-167.59h167.64l23.59 167.59h137.84L807.87 2.69h-199.92zm27.32 630.77l65.81-467.14 65.81 467.14h-131.63z"></path> <polygon fill="#E20617" points="993.59 134.65 1252.87 134.65 993.59 797.09 993.59 926.41 1393.05 926.41 1393.05 794.46 1133.78 794.46 1393.05 132.01 1393.05 2.69 993.59 2.69 993.59 134.65"></polygon> <path fill="#E20617" d="M1779.58 2.69h-200.15l-139.23 923.72h125.56l23.62-167.59h167.82l23.62 167.59h137.99L1779.58 2.69zm-172.8 630.77l65.89-467.14 65.88 467.14h-131.77zM2.11 1094.71h77.49c48.99 0 73.03 27.17 73.03 77.04v157.65c0 49.88-24.05 77.04-73.03 77.04H2.11v-311.73zm48.99 44.53v222.66h27.61c15.59 0 24.94-8.02 24.94-30.28v-162.1c0-22.27-9.35-30.28-24.94-30.28h-27.61zM232.79 1226.08h67.24v44.53h-67.24v91.29h84.61v44.53h-133.6v-311.73h133.6v44.53h-84.61v86.84zM421.6 1348.99l37.41-254.28h44.98l-48.1 311.73h-73.03l-48.1-311.73h49.43l37.41 254.28zM575.69 1226.08h67.24v44.53h-67.24v91.29h84.61v44.53h-133.6v-311.73h133.6v44.53h-84.61v86.84zM690.58 1094.71h48.99v267.2h80.6v44.53h-129.59v-311.73zM837.53 1169.52c0-49.88 26.27-78.38 74.37-78.38s74.37 28.5 74.37 78.38v162.1c0 49.88-26.27 78.38-74.37 78.38s-74.37-28.5-74.37-78.38v-162.1zm48.99 165.22c0 22.27 9.8 30.73 25.38 30.73s25.38-8.46 25.38-30.73v-168.33c0-22.27-9.8-30.73-25.38-30.73s-25.38 8.46-25.38 30.73v168.33zM1163.07 1171.75v40.52c0 49.88-24.05 77.04-73.03 77.04h-23.16v117.12h-48.99v-311.73h72.14c48.99 0 73.03 27.17 73.03 77.04zm-96.19-32.51v105.54h23.16c15.59 0 24.05-7.13 24.05-29.39v-46.76c0-22.27-8.46-29.39-24.05-29.39h-23.16zM1289.54 1316.04l33.4-221.33h68.14v311.73h-46.31v-223.55l-33.84 223.55h-46.31l-36.52-220.44v220.44h-42.75v-311.73h68.14l36.07 221.33zM1475.68 1226.08h67.24v44.53h-67.24v91.29h84.61v44.53h-133.6v-311.73h133.6v44.53h-84.61v86.84zM1634.22 1180.66v225.78h-44.09v-311.73h61.46l50.32 186.59v-186.59h43.64v311.73h-50.32l-61.01-225.78zM1766.48 1094.71h151.41v44.53h-51.21v267.2h-48.99v-267.2h-51.21v-44.53z"></path> </svg></a>
-    <a class="ipc-brand-link" href="https://baza.bz/kvartiry" target="_blank" rel="noopener">Выбрать квартиру</a>
-  </header>
-  <h2>Ипотечный калькулятор</h2>
+  <div class="ipc-brand">
+    <h2>Ипотечный калькулятор</h2>
+    <a class="ipc-logo" id="ipc-logo" href="https://baza.bz/" target="_blank" rel="noopener"><svg class="ipc-logo-svg" viewBox="0 0 1920 1410" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BAZA Development"> <path fill="#E20617" d="M321.26 434.2c60.79-30.35 88.08-91.05 88.08-186.06v-32.99C409.33 72.63 348.55 2.69 207.13 2.69H1.19v923.72h214.62c136.46 0 207.17-76.54 207.17-219.05v-75.22c0-97.65-28.53-167.59-101.72-197.94zM137.66 134.65h65.75c48.38 0 69.47 29.04 69.47 95.01v51.46c0 73.89-31.02 97.65-81.88 97.65h-53.34v-244.13zm148.87 568.75c0 68.62-24.81 91.05-70.71 91.05h-78.16v-283.71h60.79c62.03 0 88.08 26.39 88.08 112.17v80.49zM607.94 2.69l-139.08 923.72h125.42l23.59-167.59h167.64l23.59 167.59h137.84L807.87 2.69h-199.92zm27.32 630.77l65.81-467.14 65.81 467.14h-131.63z"></path> <polygon fill="#E20617" points="993.59 134.65 1252.87 134.65 993.59 797.09 993.59 926.41 1393.05 926.41 1393.05 794.46 1133.78 794.46 1393.05 132.01 1393.05 2.69 993.59 2.69 993.59 134.65"></polygon> <path fill="#E20617" d="M1779.58 2.69h-200.15l-139.23 923.72h125.56l23.62-167.59h167.82l23.62 167.59h137.99L1779.58 2.69zm-172.8 630.77l65.89-467.14 65.88 467.14h-131.77zM2.11 1094.71h77.49c48.99 0 73.03 27.17 73.03 77.04v157.65c0 49.88-24.05 77.04-73.03 77.04H2.11v-311.73zm48.99 44.53v222.66h27.61c15.59 0 24.94-8.02 24.94-30.28v-162.1c0-22.27-9.35-30.28-24.94-30.28h-27.61zM232.79 1226.08h67.24v44.53h-67.24v91.29h84.61v44.53h-133.6v-311.73h133.6v44.53h-84.61v86.84zM421.6 1348.99l37.41-254.28h44.98l-48.1 311.73h-73.03l-48.1-311.73h49.43l37.41 254.28zM575.69 1226.08h67.24v44.53h-67.24v91.29h84.61v44.53h-133.6v-311.73h133.6v44.53h-84.61v86.84zM690.58 1094.71h48.99v267.2h80.6v44.53h-129.59v-311.73zM837.53 1169.52c0-49.88 26.27-78.38 74.37-78.38s74.37 28.5 74.37 78.38v162.1c0 49.88-26.27 78.38-74.37 78.38s-74.37-28.5-74.37-78.38v-162.1zm48.99 165.22c0 22.27 9.8 30.73 25.38 30.73s25.38-8.46 25.38-30.73v-168.33c0-22.27-9.8-30.73-25.38-30.73s-25.38 8.46-25.38 30.73v168.33zM1163.07 1171.75v40.52c0 49.88-24.05 77.04-73.03 77.04h-23.16v117.12h-48.99v-311.73h72.14c48.99 0 73.03 27.17 73.03 77.04zm-96.19-32.51v105.54h23.16c15.59 0 24.05-7.13 24.05-29.39v-46.76c0-22.27-8.46-29.39-24.05-29.39h-23.16zM1289.54 1316.04l33.4-221.33h68.14v311.73h-46.31v-223.55l-33.84 223.55h-46.31l-36.52-220.44v220.44h-42.75v-311.73h68.14l36.07 221.33zM1475.68 1226.08h67.24v44.53h-67.24v91.29h84.61v44.53h-133.6v-311.73h133.6v44.53h-84.61v86.84zM1634.22 1180.66v225.78h-44.09v-311.73h61.46l50.32 186.59v-186.59h43.64v311.73h-50.32l-61.01-225.78zM1766.48 1094.71h151.41v44.53h-51.21v267.2h-48.99v-267.2h-51.21v-44.53z"></path> </svg></a>
+  </div>
   <p class="ipc-sub">Выберите проект и условия — калькулятор подберёт программу с наименьшим платежом и покажет все программы проекта.</p>
 
   <div class="ipc-grid">
@@ -296,7 +292,7 @@
     liveData: true,
     // true — показывать внутренние данные: субсидию застройщика банку (₽ и %). Для публичного сайта — false.
     showInternal: false,
-    // true — шапка с логотипом BAZA. При вставке прямо на baza.bz, где логотип уже есть в шапке сайта, поставьте false
+    // true — логотип BAZA справа от заголовка. При вставке прямо на baza.bz, где логотип уже есть в шапке сайта, поставьте false
     showLogo: true,
     // Название таблицы-источника — показывается внизу калькулятора
     sourceName: 'Ипотечный калькулятор_Екб',
@@ -481,7 +477,7 @@
     alert: $('ipc-alert'), detail: $('ipc-detail'), thead: $('ipc-thead'), tbody: $('ipc-tbody'), title: $('ipc-table-title'),
     pickinfo: $('ipc-pickinfo'), notes: $('ipc-notes'), source: $('ipc-source')
   };
-  if (!CONFIG.showLogo) $('ipc-brand').hidden = true;
+  if (!CONFIG.showLogo) $('ipc-logo').hidden = true;
   var D = null;
   var state = { type: CONFIG.defaults.type, prog: null };
 
