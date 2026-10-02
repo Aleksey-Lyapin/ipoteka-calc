@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Калькулятор рассрочки</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="theme-color" content="#002346">
+<style>
+  html, body { margin: 0; padding: 0; background: #F5F8FB; }
+  @media print { html, body { background: #FFFFFF; } }
+</style>
+</head>
+<body>
+
+<!-- ===== ВСТАВКА НА САЙТ: НАЧАЛО (скопируйте всё до метки «КОНЕЦ» в HTML-блок сайта) ===== -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Стиль BAZA Development: светлый фон, белые карточки 20px, тёмно-синий текст, красные акценты, «таблетки» */
+#rassrochka-calc {
+  --rc-page: #F5F8FB;
+  --rc-text: #002346;
+  --rc-muted: #5f7690;
+  --rc-faint: #6C8DAF;
+  --rc-line: #D8E6F4;
+  --rc-bg: #FFFFFF;
+  --rc-soft: #EDF6FF;
+  --rc-red: #E20617;
+  --rc-red-hover: #b50c20;
+  --rc-red-soft: #fef3f3;
+  --rc-ok: #4d7a00;
+  --rc-ok-bg: rgba(135, 202, 0, 0.15);
+  --rc-radius: 20px;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--rc-text);
+  background: var(--rc-page);
+  font-size: 15px;
+  line-height: 1.45;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+#rassrochka-calc *, #rassrochka-calc *::before, #rassrochka-calc *::after { box-sizing: border-box; }
+#rassrochka-calc [hidden] { display: none !important; }
+#rassrochka-calc h2 { font-size: 40px; line-height: 1.1; margin: 0; font-weight: 500; letter-spacing: -0.02em; text-wrap: balance; }
+#rassrochka-calc h3 { font-size: 20px; line-height: 1.25; margin: 0; font-weight: 700; letter-spacing: -0.01em; }
+#rassrochka-calc .rc-brand { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+#rassrochka-calc .rc-brand-r { display: flex; align-items: center; gap: 20px; flex-shrink: 0; }
+#rassrochka-calc .rc-nav { display: inline-flex; align-items: center; height: 44px; padding: 0 22px; border-radius: 100px; background: var(--rc-bg); color: var(--rc-text); box-shadow: inset 0 0 0 1px var(--rc-line); font-size: 15px; font-weight: 600; text-decoration: none; white-space: nowrap; transition: box-shadow .15s, color .15s; }
+#rassrochka-calc .rc-nav:hover { box-shadow: inset 0 0 0 1px var(--rc-red); color: var(--rc-red); }
+#rassrochka-calc .rc-logo { display: block; line-height: 0; }
+#rassrochka-calc .ipc-logo-svg { display: block; height: 52px; width: auto; }
+#rassrochka-calc .rc-sub { color: var(--rc-muted); margin: 0 0 24px; max-width: 640px; font-size: 14px; }
+#rassrochka-calc .rc-card { background: var(--rc-bg); border-radius: var(--rc-radius); padding: 24px; }
+
+/* Исходные данные */
+#rassrochka-calc .rc-inputs { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: end; }
+#rassrochka-calc label, #rassrochka-calc .rc-label { display: block; font-weight: 500; font-size: 13px; margin-bottom: 6px; color: var(--rc-muted); }
+#rassrochka-calc input {
+  width: 100%; height: 48px; padding: 0 16px; font: inherit; font-size: 15px; color: var(--rc-text);
+  border: 1px solid var(--rc-line); border-radius: 12px; background: var(--rc-bg); margin: 0; transition: border-color .15s;
+}
+#rassrochka-calc input::placeholder { color: var(--rc-faint); }
+#rassrochka-calc input:hover { border-color: var(--rc-faint); }
+#rassrochka-calc input:focus { outline: none; border-color: var(--rc-text); box-shadow: 0 0 0 3px var(--rc-soft); }
+#rassrochka-calc .rc-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+#rassrochka-calc .rc-pills button {
+  font: inherit; font-size: 14px; border: 1px solid var(--rc-line); background: var(--rc-bg); color: var(--rc-text);
+  padding: 0 18px; height: 48px; border-radius: 100px; cursor: pointer; white-space: nowrap; transition: border-color .15s, background .15s;
+}
+#rassrochka-calc .rc-pills.rc-sm button { height: 36px; padding: 0 14px; font-size: 13px; }
+#rassrochka-calc .rc-pills button:hover { border-color: var(--rc-faint); }
+#rassrochka-calc .rc-pills button[aria-pressed="true"] { background: var(--rc-text); border-color: var(--rc-text); color: #FFFFFF; font-weight: 600; }
+#rassrochka-calc button:focus-visible, #rassrochka-calc a:focus-visible { outline: 2px solid var(--rc-red); outline-offset: 2px; }
+
+/* Карточки рассрочек */
+#rassrochka-calc .rc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; align-items: start; }
+#rassrochka-calc .rc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
+#rassrochka-calc .rc-badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 100px; white-space: nowrap; color: var(--rc-red); background: var(--rc-red-soft); }
+#rassrochka-calc .rc-badge.rc-zero { color: var(--rc-muted); background: var(--rc-page); }
+#rassrochka-calc .rc-desc { color: var(--rc-muted); font-size: 13px; margin: 0 0 14px; }
+#rassrochka-calc .rc-total { background: var(--rc-text); color: #FFFFFF; border-radius: 16px; padding: 16px 18px; margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 8px 28px; }
+#rassrochka-calc .rc-total .rc-k { color: rgba(255, 255, 255, 0.7); font-size: 13px; }
+#rassrochka-calc .rc-total .rc-v { font-size: 28px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; }
+#rassrochka-calc .rc-total .rc-v.rc-sm { font-size: 20px; font-weight: 500; }
+#rassrochka-calc .rc-pvpick { margin-bottom: 14px; }
+#rassrochka-calc table { width: 100%; border-collapse: collapse; font-size: 14px; }
+#rassrochka-calc th { color: var(--rc-faint); font-weight: 500; font-size: 12px; text-align: left; padding: 0 0 6px; border-bottom: 1px solid var(--rc-line); }
+#rassrochka-calc th:last-child, #rassrochka-calc td:last-child { text-align: right; }
+#rassrochka-calc td { padding: 7px 8px 7px 0; border-bottom: 1px solid var(--rc-line); vertical-align: top; font-variant-numeric: tabular-nums; }
+#rassrochka-calc td:first-child { white-space: nowrap; color: var(--rc-muted); width: 1%; padding-right: 16px; }
+#rassrochka-calc td:last-child { white-space: nowrap; font-weight: 600; padding-right: 0; }
+#rassrochka-calc tr.rc-final td { font-weight: 700; color: var(--rc-text); }
+#rassrochka-calc .rc-s2 { display: block; color: var(--rc-faint); font-size: 12px; font-weight: 400; }
+#rassrochka-calc .rc-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; font-size: 13px; color: var(--rc-muted); }
+#rassrochka-calc .rc-meta b { color: var(--rc-text); font-weight: 600; }
+#rassrochka-calc .rc-warn { margin-top: 10px; background: var(--rc-red-soft); color: var(--rc-red); border-radius: 12px; padding: 10px 12px; font-size: 13px; font-weight: 500; }
+#rassrochka-calc .rc-empty { color: var(--rc-muted); font-size: 14px; }
+#rassrochka-calc .rc-foot { margin-top: 16px; display: flex; justify-content: flex-end; }
+#rassrochka-calc .rc-btn { font: inherit; font-size: 14px; font-weight: 500; border: 0; background: var(--rc-bg); color: var(--rc-text); box-shadow: inset 0 0 0 1px var(--rc-line); border-radius: 100px; padding: 0 24px; height: 44px; cursor: pointer; }
+#rassrochka-calc .rc-btn:hover { box-shadow: inset 0 0 0 1px var(--rc-faint); }
+
+@media (prefers-reduced-motion: reduce) { #rassrochka-calc * { transition: none !important; } }
+@media (max-width: 960px) {
+  #rassrochka-calc .rc-inputs { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  #rassrochka-calc .rc-inputs .rc-f-project { grid-column: 1 / -1; }
+  #rassrochka-calc .rc-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  #rassrochka-calc { padding: 16px; }
+  #rassrochka-calc h2 { font-size: 28px; }
+  #rassrochka-calc .ipc-logo-svg { height: 38px; }
+  #rassrochka-calc .rc-brand-r { gap: 10px; }
+  #rassrochka-calc .rc-nav { height: 36px; padding: 0 14px; font-size: 13px; }
+  #rassrochka-calc .rc-card { padding: 18px; }
+  #rassrochka-calc .rc-inputs { grid-template-columns: minmax(0, 1fr); }
+  #rassrochka-calc .rc-total .rc-v { font-size: 24px; }
+  #rassrochka-calc table { font-size: 13px; }
+  #rassrochka-calc td { padding-right: 6px; }
+  #rassrochka-calc td:first-child { padding-right: 8px; }
+}
+@page { size: A4 portrait; margin: 10mm; }
+@media print {
+  #rassrochka-calc { background: #FFFFFF; padding: 0; max-width: none; font-size: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #rassrochka-calc .rc-nav, #rassrochka-calc .rc-sub, #rassrochka-calc .rc-foot { display: none !important; }
+  #rassrochka-calc h2 { font-size: 26px; }
+  #rassrochka-calc .ipc-logo-svg { height: 38px; }
+  #rassrochka-calc .rc-card { border: 1px solid var(--rc-line); padding: 12px 14px; break-inside: avoid; page-break-inside: avoid; }
+  #rassrochka-calc .rc-inputs { grid-template-columns: auto 1fr 1fr 1fr; gap: 10px; }
+  #rassrochka-calc input, #rassrochka-calc .rc-pills button { height: 30px; font-size: 12px; }
+  #rassrochka-calc .rc-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  #rassrochka-calc .rc-total { padding: 10px 12px; margin-bottom: 8px; }
+  #rassrochka-calc .rc-total .rc-v { font-size: 20px; }
+  #rassrochka-calc .rc-total .rc-v.rc-sm { font-size: 15px; }
+  #rassrochka-calc table { font-size: 11px; }
+  #rassrochka-calc td { padding: 4px 6px 4px 0; }
+}
+</style>
+
+<div id="rassrochka-calc">
+  <div class="rc-brand">
+    <h2>Калькулятор рассрочки</h2>
+    <div class="rc-brand-r">
+      <a class="rc-nav" id="rc-nav" href="./">Ипотека</a>
+      <a class="rc-logo" id="rc-logo" href="https://baza.bz/" target="_blank" rel="noopener"><svg class="ipc-logo-svg" viewBox="0 0 1920 1410" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BAZA Development"> <path fill="#E20617" d="M321.26 434.2c60.79-30.35 88.08-91.05 88.08-186.06v-32.99C409.33 72.63 348.55 2.69 207.13 2.69H1.19v923.72h214.62c136.46 0 207.17-76.54 207.17-219.05v-75.22c0-97.65-28.53-167.59-101.72-197.94zM137.66 134.65h65.75c48.38 0 69.47 29.04 69.47 95.01v51.46c0 73.89-31.02 97.65-81.88 97.65h-53.34v-244.13zm148.87 568.75c0 68.62-24.81 91.05-70.71 91.05h-78.16v-283.71h60.79c62.03 0 88.08 26.39 88.08 112.17v80.49zM607.94 2.69l-139.08 923.72h125.42l23.59-167.59h167.64l23.59 167.59h137.84L807.87 2.69h-199.92zm27.32 630.77l65.81-467.14 65.81 467.14h-131.63z"></path> <polygon fill="#E20617" points="993.59 134.65 1252.87 134.65 993.59 797.09 993.59 926.41 1393.05 926.41 1393.05 794.46 1133.78 794.46 1393.05 132.01 1393.05 2.69 993.59 2.69 993.59 134.65"></polygon> <path fill="#E20617" d="M1779.58 2.69h-200.15l-139.23 923.72h125.56l23.62-167.59h167.82l23.62 167.59h137.99L1779.58 2.69zm-172.8 630.77l65.89-467.14 65.88 467.14h-131.77zM2.11 1094.71h77.49c48.99 0 73.03 27.17 73.03 77.04v157.65c0 49.88-24.05 77.04-73.03 77.04H2.11v-311.73zm48.99 44.53v222.66h27.61c15.59 0 24.94-8.02 24.94-30.28v-162.1c0-22.27-9.35-30.28-24.94-30.28h-27.61zM232.79 1226.08h67.24v44.53h-67.24v91.29h84.61v44.53h-133.6v-311.73h133.6v44.53h-84.61v86.84zM421.6 1348.99l37.41-254.28h44.98l-48.1 311.73h-73.03l-48.1-311.73h49.43l37.41 254.28zM575.69 1226.08h67.24v44.53h-67.24v91.29h84.61v44.53h-133.6v-311.73h133.6v44.53h-84.61v86.84zM690.58 1094.71h48.99v267.2h80.6v44.53h-129.59v-311.73zM837.53 1169.52c0-49.88 26.27-78.38 74.37-78.38s74.37 28.5 74.37 78.38v162.1c0 49.88-26.27 78.38-74.37 78.38s-74.37-28.5-74.37-78.38v-162.1zm48.99 165.22c0 22.27 9.8 30.73 25.38 30.73s25.38-8.46 25.38-30.73v-168.33c0-22.27-9.8-30.73-25.38-30.73s-25.38 8.46-25.38 30.73v168.33zM1163.07 1171.75v40.52c0 49.88-24.05 77.04-73.03 77.04h-23.16v117.12h-48.99v-311.73h72.14c48.99 0 73.03 27.17 73.03 77.04zm-96.19-32.51v105.54h23.16c15.59 0 24.05-7.13 24.05-29.39v-46.76c0-22.27-8.46-29.39-24.05-29.39h-23.16zM1289.54 1316.04l33.4-221.33h68.14v311.73h-46.31v-223.55l-33.84 223.55h-46.31l-36.52-220.44v220.44h-42.75v-311.73h68.14l36.07 221.33zM1475.68 1226.08h67.24v44.53h-67.24v91.29h84.61v44.53h-133.6v-311.73h133.6v44.53h-84.61v86.84zM1634.22 1180.66v225.78h-44.09v-311.73h61.46l50.32 186.59v-186.59h43.64v311.73h-50.32l-61.01-225.78zM1766.48 1094.71h151.41v44.53h-51.21v267.2h-48.99v-267.2h-51.21v-44.53z"></path> </svg></a>
+    </div>
+  </div>
+  <p class="rc-sub">Выберите проект и укажите стоимость квартиры — калькулятор покажет график платежей по всем вариантам рассрочки.</p>
+
+  <div class="rc-card">
+    <div class="rc-inputs">
+      <div class="rc-f-project">
+        <span class="rc-label" id="rc-project-l">Проект</span>
+        <div class="rc-pills" id="rc-project" role="group" aria-labelledby="rc-project-l"></div>
+      </div>
+      <div>
+        <label for="rc-flat">Номер квартиры</label>
+        <input id="rc-flat" type="text" autocomplete="off" placeholder="указать">
+      </div>
+      <div>
+        <label for="rc-price">Стоимость квартиры, ₽</label>
+        <input id="rc-price" type="text" inputmode="numeric" autocomplete="off">
+      </div>
+      <div>
+        <label for="rc-finish">Отделка, ₽</label>
+        <input id="rc-finish" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+      </div>
+    </div>
+  </div>
+
+  <div class="rc-grid" id="rc-grid"></div>
+
+  <div class="rc-foot">
+    <button type="button" class="rc-btn" id="rc-print">Распечатать расчёт</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================== НАСТРОЙКИ ================== */
+  var CONFIG = Object.assign({
+    // ID Google Таблицы. Таблица должна быть доступна «всем, у кого есть ссылка» (просмотр).
+    sheetId: '13obtdqMiDQv0a_7CC7b0LsY2UZJA_xFZd6JtBN3uDRk',
+    // true — при открытии страницы подтягивать условия рассрочек из таблицы (если не удалось — встроенная копия)
+    liveData: true,
+    // Проекты и листы таблицы с их условиями
+    projects: [
+      { name: 'ДМД 2 оч.', sheet: 'Рассрочки_ДМД 2 оч.' },
+      { name: 'Алиса 1 оч.', sheet: 'Рассрочки_Алиса 1 оч.' }
+    ],
+    // Адрес ипотечного калькулятора (кнопка «Ипотека» в шапке). Пусто — кнопка скрыта
+    mortgageUrl: './',
+    showLogo: true,
+    defaults: { project: 'ДМД 2 оч.', price: 12000000 }
+  }, window.RASSROCHKA_CALC_CONFIG || {});
+
+  /* Встроенная копия листов «Рассрочки_…» (на случай, если таблица недоступна). Снята: 02.10.2026
+     Формат строки: [A, B, E, F, G] — как в таблице */
+  var SNAPSHOT = {"ДМД 2 оч.":[[null,null,"Рассрочка без ПВ",null,null],[null,null,"Стоимость квартиры, руб.",11934547,null],[null,null,"Доп. опция (отделка), руб.",null,null],[null,null,"Первый платеж, %",0.0,"Date(2026,9,2)"],[null,null,"Второй платеж, %",0.1,"Date(2027,2,31)"],[null,null,"Промежуточный ежемес платеж, руб",50000.0,null],[null,null,"Кол-во промеж. ежемес. платежей, шт.",14.0,null],[null,null,"Последний платеж (остаток), %",0.8413467473880659,"Date(2028,0,31)"],[null,null,"Срок рассрочки, мес",16.0,null],[null,null,"Скидка",0.0,null],[null,null,"Итоговая стоимость квартиры, руб.",11934547,null],[null,null,"Скидка, руб.",0.0,null],[null,null,"Первый платеж, руб.",0.0,"Date(2026,9,2)"],[null,null,"Второй платеж, руб.",1193455.0,"Date(2027,2,31)"],[null,null,"Сумма промеж ежемес. платежей, руб",700000.0,null],[null,null,"Последний платеж (остаток), руб.",10041092,"Date(2028,0,31)"],[null,null,"Рассрочка 50/50%/Матрица рассрочек",null,null],[null,null,"Стоимость квартиры, руб.",8936949.0,null],[null,null,"Доп. опция (отделка), руб.",null,null],[null,null,"Первый платеж, %",0.5,null],[0.5,0.07,"Промежуточный платеж, %",0.05,"Date(2027,8,30)"],[0.51,0.07,"Последний платеж (остаток), %",0.45,"Date(2028,0,31)"],[0.52,0.07,"Срок рассрочки, мес",16.0,null],[0.53,0.07,"Скидка",0.07,null],[0.54,0.07,"Итоговая стоимость квартиры, руб.",8311362.569999999,null],[0.55,0.07,"Скидка, руб.",-625586.4300000006,null],[0.56,0.07,"Первый платеж, руб.",4155681.0,"Date(2026,9,2)"],[0.57,0.07,"Промежуточный платеж, руб",415568.1285,"Date(2027,8,30)"],[0.58,0.07,"Последний платеж (остаток), руб.",3740113.4414999993,"Date(2028,0,31)"],[0.59,0.07,null,null,null],[0.6,0.07,"Рассрочка 20/20",null,null],[0.61,0.07,"Стоимость квартиры, руб.",11934547,null],[0.62,0.07,"Доп. опция (отделка), руб.",null,null],[0.63,0.07,"Первый платеж, %",0.2,"Date(2026,9,2)"],[0.64,0.07,"Промежуточный ежемес платеж, руб",20000.0,null],[0.65,0.07,"Кол-во промеж. ежемес. платежей, шт.",14.0,null],[0.66,0.07,"Последний платеж (остаток), %",0.7753038936370804,"Date(2028,0,31)"],[0.67,0.07,"Срок рассрочки, мес",16.0,null],[0.68,0.07,"Скидка",0.05,null],[0.69,0.07,"Итоговая стоимость квартиры, руб.",11337819.65,null],[0.7,0.08,"Скидка, руб.",-596727.3499999996,null],[0.71,0.08,"Первый платеж, руб.",2267564.0,"Date(2026,9,2)"],[0.72,0.08,"Сумма промеж ежемес. платежей, руб",280000.0,null],[0.73,0.08,"Последний платеж (остаток), руб.",8790255.65,"Date(2028,0,31)"],[0.74,0.08,null,null,null],[0.75,0.08,null,null,null],[0.76,0.08,"Рассрочка для будущих родителей (со скидкой 10%)",null,null],[0.77,0.08,"Стоимость квартиры, руб.",14250756,null],[0.78,0.08,"Доп. опция (отделка), руб.",null,null],[0.79,0.08,"Скидка, %",0.1,null],[0.8,0.08,"Итоговая стоимость квартиры, руб.",12825680.4,null],[0.81,0.08,"Скидка, руб.",-1425075.5999999996,null],[0.82,0.08,"Срок рассрочки, мес",null,null],[0.83,0.08,"Первый платеж, %",0.2,null],[0.84,0.08,"Первый платеж, руб.",2565136.08,"Date(2026,9,2)"],[0.85,0.08,"Последний платеж (остаток), руб.",10260544.32,"Date(2027,6,2)"],[0.86,0.08,null,null,null],[0.87,0.08,null,null,null],[0.88,0.08,null,null,null],[0.89,0.08,null,null,null],[0.9,0.08,null,null,null],[0.91,0.08,null,null,null],[0.92,0.08,null,null,null],[0.93,0.08,null,null,null],[0.94,0.08,null,null,null],[0.95,0.08,null,null,null],[0.96,0.08,null,null,null],[0.97,0.08,null,null,null],[0.98,0.08,null,null,null],[0.99,0.08,null,null,null],[1.0,0.1,null,null,null]],"Алиса 1 оч.":[[null,null,"Рассрочка без ПВ",null,null],[null,null,"Стоимость квартиры, руб.",11511751,null],[null,null,"Доп. опция (отделка), руб.",null,null],[null,null,"Первый платеж, %",0.0,"Date(2026,9,2)"],[null,null,"Второй платеж, %",0.1,"Date(2027,2,31)"],[null,null,"Промежуточный ежемес платеж, руб",50000.0,null],[null,null,"Кол-во промеж. ежемес. платежей, шт.",14.0,null],[null,null,"Последний платеж (остаток), %",0.8391925694014751,"Date(2028,0,31)"],[null,null,"Срок рассрочки, мес",16.0,null],[null,null,"Скидка",0.0,null],[null,null,"Итоговая стоимость квартиры, руб.",11511751,null],[null,null,"Скидка, руб.",0.0,null],[null,null,"Первый платеж, руб.",0.0,"Date(2026,9,2)"],[null,null,"Второй платеж, руб.",1151175.0,"Date(2027,2,31)"],[null,null,"Сумма промеж ежемес. платежей, руб",700000.0,null],[null,null,"Последний платеж (остаток), руб.",9660576.0,"Date(2028,0,31)"],[null,null,"Рассрочка 20/20",null,null],[null,null,"Стоимость квартиры, руб.",6011000.0,null],[null,null,"Доп. опция (отделка), руб.",null,null],[null,null,"Первый платеж, %",0.2,"Date(2026,9,2)"],[null,null,"Промежуточный ежемес платеж, руб",20000.0,null],[null,null,"Кол-во промеж. ежемес. платежей, шт.",14.0,null],[null,null,"Последний платеж (остаток), %",0.7499126154022285,"Date(2028,0,31)"],[null,null,"Срок рассрочки, мес",16.0,null],[null,null,"Скидка",0.07,null],[null,null,"Итоговая стоимость квартиры, руб.",5590230.0,null],[null,null,"Скидка, руб.",-420770.0,null],[null,null,"Первый платеж, руб.",1118046.0,"Date(2026,9,2)"],[null,null,"Сумма промеж ежемес. платежей, руб",280000.0,null],[null,null,"Последний платеж (остаток), руб.",4192184.0,"Date(2028,0,31)"],[null,null,"Рассрочка 50/50%/Матрица рассрочек",null,null],[null,null,"Стоимость квартиры, руб.",6752065.0,null],[null,null,"Доп. опция (отделка), руб.",null,null],[null,null,"Первый платеж, %",0.5,null],[0.5,0.12,"Промежуточный платеж, %",0.05,"Date(2027,8,30)"],[0.6,0.12,"Последний платеж (остаток), %",0.45,"Date(2028,0,31)"],[0.7,0.14,"Срок рассрочки, мес",16.0,null],[0.8,0.14,"Скидка",0.12,null],[0.9,0.14,"Итоговая стоимость квартиры, руб.",5941817.2,null],[null,null,"Скидка, руб.",-810247.7999999998,null],[null,null,"Первый платеж, руб.",2970909.0,"Date(2026,9,2)"],[null,null,"Промежуточный платеж, руб",297090.86000000004,"Date(2027,8,30)"],[null,null,"Последний платеж (остаток), руб.",2673817.3400000003,"Date(2028,0,31)"],[null,null,"Рассрочка для будущих родителей (со скидкой 10%)",null,null],[null,null,"Стоимость квартиры, руб.",11511751,null],[null,null,"Доп. опция (отделка), руб.",null,null],[null,null,"Скидка, %",0.1,null],[null,null,"Итоговая стоимость квартиры, руб.",10360575.9,null],[null,null,"Скидка, руб.",-1151175.0999999996,null],[null,null,"Срок рассрочки, мес",null,null],[null,null,"Первый платеж, %",0.2,null],[null,null,"Первый платеж, руб.",2072115.1800000002,null],[null,null,"Последний платеж (остаток), руб.",8288460.720000001,null]]};
+
+  /* ================== РАЗБОР ЛИСТА ==================
+     Блоки ищутся по заголовкам в колонке E («Рассрочка без ПВ», «50/50», «20/20», «будущих родителей»),
+     параметры — по подписям строк. Поэтому порядок блоков и строк на листе может меняться. */
+  function gdate(v) {
+    var m = /Date\((\d+),(\d+),(\d+)/.exec(String(v == null ? '' : v));
+    return m ? new Date(+m[1], +m[2], +m[3]) : null;
+  }
+  function parseSheet(rows) {
+    var P = { noPv: {}, m5050: { matrix: [] }, t2020: {}, parents: {} }, cur = null;
+    rows.forEach(function (r) {
+      var A = r[0], B = r[1], E = r[2] == null ? '' : String(r[2]).trim(), F = r[3], G = r[4];
+      if (typeof A === 'number' && typeof B === 'number' && A > 0 && A <= 1) P.m5050.matrix.push([A, B]);
+      if (!E) return;
+      var t = E.toLowerCase();
+      if (/без пв/.test(t)) { cur = P.noPv; cur.title = E; return; }
+      if (/50\/50|матриц/.test(t)) { cur = P.m5050; cur.title = E; return; }
+      if (/20\/20/.test(t)) { cur = P.t2020; cur.title = E; return; }
+      if (/родител/.test(t)) { cur = P.parents; cur.title = E; return; }
+      if (!cur) return;
+      var n = typeof F === 'number' ? F : null, d = gdate(G);
+      if (/^первый платеж, %/.test(t)) cur.p1 = n;
+      else if (/^второй платеж, %/.test(t)) { cur.p2 = n; cur.date2 = d; }
+      else if (/^промежуточный ежемес платеж/.test(t)) cur.monthly = n;
+      else if (/^промежуточный платеж, %/.test(t)) { cur.pmid = n; cur.dateMid = d; }
+      else if (/^последний платеж \(остаток\), %/.test(t)) cur.final = d;
+      else if (/^последний платеж \(остаток\), руб/.test(t)) { if (d) cur.lastDated = true; }
+      else if (t === 'скидка' || /^скидка, %/.test(t)) cur.disc = n;
+    });
+    return P;
+  }
+  function validSheet(P) {
+    var a = P.noPv, b = P.m5050, c = P.t2020, d = P.parents;
+    return a.p2 != null && a.date2 && a.monthly != null && a.final &&
+      b.pmid != null && b.dateMid && b.final && b.matrix.length > 0 &&
+      c.p1 != null && c.monthly != null && c.final && c.disc != null &&
+      d.p1 != null && d.disc != null;
+  }
+
+  function gvizRows(sheet, signal) {
+    var url = 'https://docs.google.com/spreadsheets/d/' + CONFIG.sheetId + '/gviz/tq?tqx=out:json&headers=0&sheet=' +
+      encodeURIComponent(sheet) + '&range=A1:H200';
+    return fetch(url, { cache: 'no-store', signal: signal }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    }).then(function (t) {
+      var j = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1));
+      if (j.status !== 'ok') throw new Error('gviz ' + j.status);
+      return j.table.rows.map(function (row) {
+        var c = row.c || [];
+        var v = function (i) { return c[i] ? c[i].v : null; };
+        return [v(0), v(1), v(4), v(5), v(6)];
+      });
+    });
+  }
+
+  /* ================== РАСЧЁТ (повторяет формулы листов «Рассрочки_…») ================== */
+  function p15(x) { return +x.toPrecision(15); }
+  function round0(x) { return x < 0 ? -Math.round(p15(-x)) : Math.round(p15(x)); }
+  function today() { var n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+  function days(a, b) { return Math.round((b - a) / 864e5); }
+  function edate(d, m) { // как EDATE в таблице: день не выходит за конец месяца
+    var y = d.getFullYear(), mo = d.getMonth() + m, last = new Date(y, mo + 1, 0).getDate();
+    return new Date(y, mo, Math.min(d.getDate(), last));
+  }
+  function lookupDisc(matrix, pv) {
+    for (var i = 0; i < matrix.length; i++) if (Math.abs(matrix[i][0] - pv) < 1e-9) return matrix[i][1];
+    return null;
+  }
+
+  function calcAll(P, inp) {
+    var T = today(), base = inp.base, fin = inp.finish, out = {};
+    var total = function (d) { return base * (1 - (d || 0)) + fin; };
+
+    // Рассрочка без ПВ: F11 = цена×(1−скидка)+отделка; F7 = ROUND((дата остатка − сегодня)/30 − 2)
+    var a = P.noPv, tA = total(a.disc), nA = round0(days(T, a.final) / 30 - 2);
+    var fA = round0(tA * (a.p1 || 0)), sA = round0(tA * a.p2), mA = a.monthly * nA;
+    out.noPv = {
+      title: 'Рассрочка без ПВ', disc: a.disc || 0, total: tA, term: round0(days(T, a.final) / 30),
+      desc: (a.p1 ? Math.round(a.p1 * 100) + '% сразу, ' : 'Без первого взноса, ') + Math.round(a.p2 * 100) + '% до ' + dfmt(a.date2) +
+        ', далее по ' + rub(a.monthly) + ' в месяц, остаток до ' + dfmt(a.final),
+      rows: [].concat(
+        fA ? [[dfmt(T), 'Первый платёж', pct(a.p1), fA]] : [],
+        [[dfmt(a.date2), 'Второй платёж', pct(a.p2) + ' стоимости', sA]],
+        nA > 0 ? [['ежемесячно', 'Промежуточные платежи', rub(a.monthly) + ' × ' + nA + ' мес.', mA]] : [],
+        [[dfmt(a.final), 'Остаток', pct((tA - fA - mA - sA) / tA) + ' стоимости', tA - fA - mA - sA, true]]
+      )
+    };
+
+    // Рассрочка 50/50 (матрица): скидка = ВПР(ПВ; матрица); промежуточный платёж без округления
+    var b = P.m5050, pv = inp.pv, dB = lookupDisc(b.matrix, pv), tB = total(dB);
+    var fB = round0(tB * pv), midB = tB * b.pmid;
+    out.m5050 = {
+      title: 'Рассрочка 50/50', disc: dB || 0, total: tB, term: round0(days(T, b.final) / 30), pvPick: true,
+      desc: 'ПВ от 50%, ' + Math.round(b.pmid * 100) + '% до ' + dfmt(b.dateMid) + ', остаток до ' + dfmt(b.final) + '. Чем больше ПВ, тем больше скидка',
+      rows: [
+        [dfmt(T), 'Первый платёж', pct(pv) + ' стоимости', fB],
+        [dfmt(b.dateMid), 'Промежуточный платёж', pct(b.pmid) + ' стоимости', midB],
+        [dfmt(b.final), 'Остаток', pct((tB - fB - midB) / tB) + ' стоимости', tB - fB - midB, true]
+      ]
+    };
+
+    // Рассрочка 20/20
+    var c = P.t2020, tC = total(c.disc), nC = round0(days(T, c.final) / 30 - 2);
+    var fC = round0(tC * c.p1), mC = c.monthly * nC;
+    out.t2020 = {
+      title: 'Рассрочка 20/20', disc: c.disc || 0, total: tC, term: round0(days(T, c.final) / 30),
+      desc: Math.round(c.p1 * 100) + '% сразу, далее по ' + rub(c.monthly) + ' в месяц, остаток до ' + dfmt(c.final),
+      rows: [].concat(
+        [[dfmt(T), 'Первый платёж', pct(c.p1) + ' стоимости', fC]],
+        nC > 0 ? [['ежемесячно', 'Промежуточные платежи', rub(c.monthly) + ' × ' + nC + ' мес.', mC]] : [],
+        [[dfmt(c.final), 'Остаток', pct((tC - fC - mC) / tC) + ' стоимости', tC - fC - mC, true]]
+      )
+    };
+
+    // Для будущих родителей: первый платёж без округления, остаток через 9 месяцев (EDATE), если дата задана на листе
+    var d = P.parents, tD = total(d.disc), fD = tD * d.p1, lastDate = d.lastDated ? edate(T, 9) : null;
+    out.parents = {
+      title: 'Для будущих родителей', disc: d.disc || 0, total: tD, term: null, termText: 'до 9 мес.',
+      desc: Math.round(d.p1 * 100) + '% сразу, остаток в течение 9 месяцев с переходом в семейную ипотеку',
+      rows: [
+        [dfmt(T), 'Первый платёж', pct(d.p1) + ' стоимости', fD],
+        [lastDate ? dfmt(lastDate) : 'до 9 мес.', 'Остаток', 'с переходом в семейную ипотеку', tD - fD, true]
+      ]
+    };
+    return out;
+  }
+
+  /* ================== ФОРМАТИРОВАНИЕ ================== */
+  var nf0 = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
+  var nfp = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 });
+  function rub(v) { return nf0.format(Math.round(v)) + ' ₽'; }
+  function pct(v) { return nfp.format(p15(v * 100)) + '%'; }
+  function dfmt(d) { return d ? d.toLocaleDateString('ru-RU') : '—'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function parseMoney(s) { var d = String(s).replace(/[^\d]/g, ''); return d ? parseInt(d, 10) : null; }
+  function plural(n, a, b, c) { var m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? b : c); }
+
+  /* ================== ИНТЕРФЕЙС ================== */
+  var root = document.getElementById('rassrochka-calc');
+  if (!root) return;
+  var $ = function (id) { return document.getElementById(id); };
+  var el = { project: $('rc-project'), flat: $('rc-flat'), price: $('rc-price'), finish: $('rc-finish'), grid: $('rc-grid') };
+  var DATA = {}; // имя проекта -> разобранные условия
+  var state = { project: CONFIG.defaults.project, pv: {} };
+
+  if (CONFIG.mortgageUrl) $('rc-nav').href = CONFIG.mortgageUrl; else $('rc-nav').hidden = true;
+  if (!CONFIG.showLogo) $('rc-logo').hidden = true;
+
+  function renderProjects() {
+    el.project.innerHTML = CONFIG.projects.map(function (p) {
+      return '<button type="button" data-p="' + esc(p.name) + '" aria-pressed="' + (p.name === state.project) + '">' + esc(p.name) + '</button>';
+    }).join('');
+  }
+
+  function pvOptions(P) {
+    // Варианты ПВ — как в выпадающем списке на листе: 50%, 60%, 70%, 80%, 90% (если есть в матрице)
+    return [0.5, 0.6, 0.7, 0.8, 0.9].filter(function (v) { return lookupDisc(P.m5050.matrix, v) != null; });
+  }
+
+  function card(key, c, P) {
+    var html = '<div class="rc-card" data-k="' + key + '">' +
+      '<div class="rc-head"><h3>' + esc(c.title) + '</h3><span class="rc-badge' + (c.disc ? '' : ' rc-zero') + '">' +
+        (c.disc ? 'скидка ' + pct(c.disc) : 'без скидки') + '</span></div>' +
+      '<p class="rc-desc">' + esc(c.desc) + '</p>';
+    if (c.pvPick) {
+      var opts = pvOptions(P);
+      html += '<div class="rc-pvpick"><span class="rc-label">Первый платёж</span><div class="rc-pills rc-sm" data-pv>' +
+        opts.map(function (v) {
+          return '<button type="button" data-v="' + v + '" aria-pressed="' + (Math.abs(v - state.pv[state.project]) < 1e-9) + '">' + pct(v) +
+            ' · скидка ' + pct(lookupDisc(P.m5050.matrix, v)) + '</button>';
+        }).join('') + '</div></div>';
+    }
+    var discRub = readInputs().base + readInputs().finish - c.total;
+    html += '<div class="rc-total"><div><div class="rc-k">Итоговая стоимость</div><div class="rc-v">' + rub(c.total) + '</div></div>' +
+      (discRub > 0.5 ? '<div><div class="rc-k">Скидка</div><div class="rc-v rc-sm">' + rub(discRub) + '</div></div>' : '') + '</div>';
+    html += '<table><thead><tr><th>Дата</th><th>Платёж</th><th>Сумма</th></tr></thead><tbody>' +
+      c.rows.map(function (r) {
+        return '<tr' + (r[4] ? ' class="rc-final"' : '') + '><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '<span class="rc-s2">' + esc(r[2]) + '</span></td><td>' + rub(r[3]) + '</td></tr>';
+      }).join('') + '</tbody></table>';
+    html += '<div class="rc-meta"><span>Срок рассрочки</span><b>' + (c.term != null ? c.term + ' ' + plural(c.term, 'месяц', 'месяца', 'месяцев') : esc(c.termText)) + '</b></div>';
+    var last = c.rows[c.rows.length - 1][3];
+    if (last < -0.5) html += '<div class="rc-warn">Сумма платежей больше стоимости квартиры — проверьте стоимость.</div>';
+    return html + '</div>';
+  }
+
+  function readInputs() {
+    return { base: parseMoney(el.price.value) || 0, finish: parseMoney(el.finish.value) || 0, pv: state.pv[state.project] };
+  }
+
+  function render() {
+    var P = DATA[state.project];
+    var inp = readInputs();
+    if (!P) { el.grid.innerHTML = '<div class="rc-card rc-empty">Нет данных по проекту.</div>'; return; }
+    if (!inp.base) { el.grid.innerHTML = '<div class="rc-card rc-empty">Укажите стоимость квартиры.</div>'; return; }
+    var r = calcAll(P, inp);
+    el.grid.innerHTML = card('noPv', r.noPv, P) + card('m5050', r.m5050, P) + card('t2020', r.t2020, P) + card('parents', r.parents, P);
+    postHeight();
+  }
+
+  function postHeight() {
+    if (window.parent === window) return;
+    try { window.parent.postMessage({ ipotekaCalcHeight: Math.ceil(document.documentElement.scrollHeight) }, '*'); } catch (e) {}
+  }
+
+  function useData(map, source) {
+    Object.keys(map).forEach(function (name) {
+      var P = map[name];
+      if (!validSheet(P)) return;
+      DATA[name] = P;
+      var opts = pvOptions(P);
+      var has = function (x) { return x != null && opts.some(function (v) { return Math.abs(v - x) < 1e-9; }); };
+      if (!has(state.pv[name])) state.pv[name] = has(P.m5050.p1) ? P.m5050.p1 : opts[0]; // по умолчанию — ПВ, выбранный на листе
+    });
+    if (!DATA[state.project]) state.project = CONFIG.projects[0].name;
+    window.RassrochkaCalc.source = source;
+    renderProjects();
+    render();
+  }
+
+  function moneyInput(input) {
+    input.addEventListener('input', function () {
+      var v = parseMoney(input.value);
+      var pos = input.value.length - input.selectionStart;
+      input.value = v == null ? '' : nf0.format(v);
+      try { var p = Math.max(0, input.value.length - pos); input.setSelectionRange(p, p); } catch (e) {}
+      render();
+    });
+  }
+
+  window.RassrochkaCalc = { parseSheet: parseSheet, calcAll: calcAll, data: function () { return DATA; } };
+
+  [el.price, el.finish].forEach(moneyInput);
+  el.project.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-p]'); if (!b) return;
+    state.project = b.getAttribute('data-p'); renderProjects(); render();
+  });
+  el.grid.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-pv] button[data-v]'); if (!b) return;
+    state.pv[state.project] = +b.getAttribute('data-v'); render();
+  });
+  $('rc-print').addEventListener('click', function () { window.print(); });
+  window.addEventListener('resize', postHeight);
+
+  el.price.value = CONFIG.defaults.price ? nf0.format(CONFIG.defaults.price) : '';
+  var snap = {};
+  CONFIG.projects.forEach(function (p) { if (SNAPSHOT[p.name]) snap[p.name] = parseSheet(SNAPSHOT[p.name]); });
+  useData(snap, 'копия от 02.10.2026');
+
+  if (CONFIG.liveData && window.fetch) {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 10000);
+    Promise.all(CONFIG.projects.map(function (p) {
+      return gvizRows(p.sheet, ctrl ? ctrl.signal : undefined).then(function (rows) { return [p.name, parseSheet(rows)]; }, function () { return null; });
+    })).then(function (list) {
+      clearTimeout(timer);
+      var map = {};
+      list.forEach(function (x) { if (x) map[x[0]] = x[1]; });
+      if (Object.keys(map).length) useData(map, 'таблица, ' + new Date().toLocaleString('ru-RU'));
+    });
+  }
+})();
+</script>
+<!-- ===== ВСТАВКА НА САЙТ: КОНЕЦ ===== -->
+
+</body>
+</html>
