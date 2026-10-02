@@ -58,7 +58,10 @@
 #rassrochka-calc .rc-card { background: var(--rc-bg); border-radius: var(--rc-radius); padding: 24px; }
 
 /* Исходные данные */
-#rassrochka-calc .rc-inputs { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: end; }
+#rassrochka-calc .rc-inputs { display: grid; grid-template-columns: auto repeat(4, minmax(0, 1fr)); gap: 16px; align-items: end; }
+#rassrochka-calc .rc-suffix { position: relative; }
+#rassrochka-calc .rc-suffix input { padding-right: 40px; }
+#rassrochka-calc .rc-suffix span { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--rc-muted); pointer-events: none; font-size: 15px; }
 #rassrochka-calc label, #rassrochka-calc .rc-label { display: block; font-weight: 500; font-size: 13px; margin-bottom: 6px; color: var(--rc-muted); }
 #rassrochka-calc input {
   width: 100%; height: 48px; padding: 0 16px; font: inherit; font-size: 15px; color: var(--rc-text);
@@ -171,7 +174,7 @@
   #rassrochka-calc h2 { font-size: 26px; }
   #rassrochka-calc .ipc-logo-svg { height: 38px; }
   #rassrochka-calc .rc-card { border: 1px solid var(--rc-line); padding: 12px 14px; break-inside: avoid; page-break-inside: avoid; }
-  #rassrochka-calc .rc-inputs { grid-template-columns: auto 1fr 1fr 1fr; gap: 10px; }
+  #rassrochka-calc .rc-inputs { grid-template-columns: auto 1fr 1fr 1fr 1fr; gap: 10px; }
   #rassrochka-calc input, #rassrochka-calc .rc-pills button { height: 30px; font-size: 12px; }
   #rassrochka-calc .rc-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
   #rassrochka-calc .rc-total { padding: 10px 12px; margin-bottom: 8px; }
@@ -209,6 +212,10 @@
       <div>
         <label for="rc-finish">Отделка, ₽</label>
         <input id="rc-finish" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+      </div>
+      <div>
+        <label for="rc-extra">Доп. скидка, %</label>
+        <div class="rc-suffix"><input id="rc-extra" type="text" inputmode="decimal" autocomplete="off" value="0"><span aria-hidden="true">%</span></div>
       </div>
     </div>
   </div>
@@ -318,7 +325,9 @@
 
   function calcAll(P, inp) {
     var T = today(), base = inp.base, fin = inp.finish, out = {};
-    var total = function (d) { return base * (1 - (d || 0)) + fin; };
+    // Итоговая стоимость = цена × (1 − (скидка программы + доп. скидка)) + отделка. Отделка в скидку не входит
+    var extra = inp.extra || 0;
+    var total = function (d) { return base * (1 - Math.min((d || 0) + extra, 1)) + fin; };
 
     // Рассрочка без ПВ: F11 = цена×(1−скидка)+отделка; F7 = ROUND((дата остатка − сегодня)/30 − 2)
     var a = P.noPv, tA = total(a.disc), nA = round0(days(T, a.final) / 30 - 2);
@@ -382,13 +391,32 @@
   function dfmt(d) { return d ? d.toLocaleDateString('ru-RU') : '—'; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function parseMoney(s) { var d = String(s).replace(/[^\d]/g, ''); return d ? parseInt(d, 10) : null; }
+  // Доп. скидка в процентах: «2», «1,5», «1.5». Разделитель — запятая, до 2 знаков, не больше 100
+  function cleanDisc(s) {
+    var t = String(s).replace(/\./g, ',').replace(/[^\d,]/g, '');
+    var i = t.indexOf(',');
+    if (i >= 0) t = t.slice(0, i + 1) + t.slice(i + 1).replace(/,/g, '').slice(0, 2);
+    if (i === 0) t = '0' + t;
+    if (parseFloat(t.replace(',', '.')) > 100) t = '100';
+    return t;
+  }
+  function parseDisc(s) {
+    var v = parseFloat(String(s).replace(',', '.'));
+    return isFinite(v) ? Math.min(Math.max(v, 0), 100) / 100 : 0;
+  }
+  function discLabel(d, extra) {
+    if (!d && !extra) return 'без скидки';
+    if (!extra) return 'скидка ' + pct(d);
+    if (!d) return 'доп. скидка ' + pct(extra);
+    return 'скидка ' + pct(d) + ' + ' + pct(extra);
+  }
   function plural(n, a, b, c) { var m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? b : c); }
 
   /* ================== ИНТЕРФЕЙС ================== */
   var root = document.getElementById('rassrochka-calc');
   if (!root) return;
   var $ = function (id) { return document.getElementById(id); };
-  var el = { project: $('rc-project'), flat: $('rc-flat'), price: $('rc-price'), finish: $('rc-finish'), grid: $('rc-grid') };
+  var el = { project: $('rc-project'), flat: $('rc-flat'), price: $('rc-price'), finish: $('rc-finish'), extra: $('rc-extra'), grid: $('rc-grid') };
   var DATA = {}; // имя проекта -> разобранные условия
   var state = { project: CONFIG.defaults.project, pv: {} };
 
@@ -409,8 +437,8 @@
   // forPdf — версия карточки для отчёта: без кнопок выбора ПВ, выбранный ПВ указан текстом
   function card(key, c, P, forPdf) {
     var html = '<div class="rc-card" data-k="' + key + '">' +
-      '<div class="rc-head"><h3>' + esc(c.title) + '</h3><span class="rc-badge' + (c.disc ? '' : ' rc-zero') + '">' +
-        (c.disc ? 'скидка ' + pct(c.disc) : 'без скидки') + '</span></div>' +
+      '<div class="rc-head"><h3>' + esc(c.title) + '</h3><span class="rc-badge' + (c.disc || readInputs().extra ? '' : ' rc-zero') + '">' +
+        discLabel(c.disc, readInputs().extra) + '</span></div>' +
       '<p class="rc-desc">' + esc(c.desc) + '</p>';
     if (c.pvPick && forPdf) {
       html += '<p class="rc-desc"><b>Первый платёж: ' + pct(state.pv[state.project]) + '</b></p>';
@@ -436,7 +464,7 @@
   }
 
   function readInputs() {
-    return { base: parseMoney(el.price.value) || 0, finish: parseMoney(el.finish.value) || 0, pv: state.pv[state.project] };
+    return { base: parseMoney(el.price.value) || 0, finish: parseMoney(el.finish.value) || 0, extra: parseDisc(el.extra.value), pv: state.pv[state.project] };
   }
 
   function render() {
@@ -542,7 +570,8 @@
         '<div class="rr-meta">' + esc(state.project) + (flat ? ' · кв. ' + esc(flat) : '') + ' · ' + ds + '</div></div>' +
         (png ? '<img class="rr-logo" src="' + png + '" width="55" height="40" alt="BAZA Development">' : '') + '</div>' +
       '<div class="rr-inputs">' + item('Проект', esc(state.project)) + (flat ? item('Номер квартиры', esc(flat)) : '') +
-        item('Стоимость квартиры', rub(inp.base)) + (inp.finish ? item('Отделка', rub(inp.finish)) : '') + '</div>' +
+        item('Стоимость квартиры', rub(inp.base)) + (inp.finish ? item('Отделка', rub(inp.finish)) : '') +
+        (inp.extra ? item('Доп. скидка', pct(inp.extra)) : '') + '</div>' +
       '<div class="rr-grid">' + card('noPv', r.noPv, P, true) + card('m5050', r.m5050, P, true) +
         card('t2020', r.t2020, P, true) + card('parents', r.parents, P, true) + '</div>';
     var file = ('Расчёт рассрочки ' + state.project + (flat ? ' кв ' + flat : '') + ' ' + now.toLocaleDateString('ru-RU'))
@@ -594,6 +623,11 @@
   window.RassrochkaCalc = { parseSheet: parseSheet, calcAll: calcAll, data: function () { return DATA; }, createPdf: createPdf };
 
   [el.price, el.finish].forEach(moneyInput);
+  el.extra.addEventListener('input', function () {
+    var v = cleanDisc(el.extra.value);
+    if (v !== el.extra.value) el.extra.value = v;
+    render();
+  });
   el.project.addEventListener('click', function (e) {
     var b = e.target.closest('button[data-p]'); if (!b) return;
     state.project = b.getAttribute('data-p'); renderProjects(); render();
