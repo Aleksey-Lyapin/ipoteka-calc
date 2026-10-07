@@ -578,14 +578,18 @@
     var shareOf = function (r) { return r.price > 0 ? r.pv / r.price : 1; };
     var minShareAll = Infinity;
     rows.forEach(function (r) { if (r.status === OK && shareOf(r) < minShareAll) minShareAll = shareOf(r); });
+    // Дальше 20% — программа убирается совсем (кроме типов из CONFIG.showAllTypes — IT ипотека)
+    var showAllType = CONFIG.showAllTypes.indexOf(inp.type) >= 0;
     rows.forEach(function (r) {
       r.inMain = pvIn > 0 ? r.pv <= pvIn * 1.1 + 0.5 : shareOf(r) <= minShareAll * 1.1 + 1e-9;
+      r.excluded = !showAllType && (pvIn > 0 ? r.pv > pvIn * 1.2 + 0.5 : shareOf(r) > minShareAll * 1.2 + 1e-9);
     });
+    var usable = function (r) { return r.status === OK && !r.excluded; };
 
     // выбор программы для подробного расчёта; выбранная вручную, но ставшая неподходящей — сбрасывается на автоподбор
     var sel = 0, progReset = false;
     var prog = inp.prog;
-    if (prog != null && (!rows[prog - 1] || rows[prog - 1].status !== OK)) { prog = null; progReset = true; }
+    if (prog != null && (!rows[prog - 1] || !usable(rows[prog - 1]))) { prog = null; progReset = true; }
     if (prog != null) {
       sel = prog;
     } else {
@@ -598,13 +602,13 @@
       // с наименьшим ПВ (иначе выигрывают программы, где ПВ поднят до 50% и платёж ниже за счёт взноса)
       var share = function (r) { return r.price > 0 ? r.pv / r.price : 1; };
       var minShare = Infinity;
-      rows.forEach(function (r) { if (r.status === OK && share(r) < minShare) minShare = share(r); });
-      sel = (pvIn > 0 ? best(function (r) { return r.status === OK && r.pv <= pvIn + 0.5; })
-                      : best(function (r) { return r.status === OK && share(r) <= minShare + 0.005; })) ||
-            best(function (r) { return r.status === OK; }) || (rows.length ? 1 : 0);
+      rows.forEach(function (r) { if (usable(r) && share(r) < minShare) minShare = share(r); });
+      sel = (pvIn > 0 ? best(function (r) { return usable(r) && r.pv <= pvIn + 0.5; })
+                      : best(function (r) { return usable(r) && share(r) <= minShare + 0.005; })) ||
+            best(usable) || 0;
     }
     var alerts = [];
-    if (rows.length && !rows.some(function (r) { return r.status === OK; }))
+    if (!rows.some(usable))
       alerts.push('При выбранных условиях нет подходящих программ — измените ПВ, срок, скидку или тип ипотеки');
     return { rows: rows, sel: sel, alerts: alerts, progReset: progReset };
   }
@@ -768,14 +772,14 @@
     // Сортировка по названию программы (по алфавиту); одинаковые названия — в порядке листа
     // Программ с одинаковым названием — не больше 2 в основном списке: с наименьшим ежемесячным платежом
     var groups = {}, keep = {};
-    res.rows.forEach(function (r) { if (r.status === OK && r.inMain) (groups[r.name] = groups[r.name] || []).push(r); });
+    res.rows.forEach(function (r) { if (r.status === OK && !r.excluded && r.inMain) (groups[r.name] = groups[r.name] || []).push(r); });
     Object.keys(groups).forEach(function (k) {
       groups[k].slice().sort(function (a, b) { return a.p1 - b.p1 || a.n - b.n; }).slice(0, 2).forEach(function (r) { keep[r.n] = true; });
     });
     // Для типов из CONFIG.showAllTypes (IT ипотека) — все подходящие программы сразу, без скрытия
-    if (CONFIG.showAllTypes.indexOf(state.type) >= 0) res.rows.forEach(function (r) { if (r.status === OK) keep[r.n] = true; });
-    var main = res.rows.filter(function (r) { return r.status === OK && (keep[r.n] || r.n === res.sel); }).sort(byName);
-    var extra = res.rows.filter(function (r) { return r.status === OK && !keep[r.n] && r.n !== res.sel; }).sort(byName);
+    if (CONFIG.showAllTypes.indexOf(state.type) >= 0) res.rows.forEach(function (r) { if (r.status === OK && !r.excluded) keep[r.n] = true; });
+    var main = res.rows.filter(function (r) { return r.status === OK && !r.excluded && (keep[r.n] || r.n === res.sel); }).sort(byName);
+    var extra = res.rows.filter(function (r) { return r.status === OK && !r.excluded && !keep[r.n] && r.n !== res.sel; }).sort(byName);
     // Развёрнутый список — единый, по алфавиту; ссылка «Скрыть» — в конце
     var shown = state.showAll ? main.concat(extra).sort(byName) : main;
     // № — порядковый номер строки в списке (номер строки листа остаётся внутренним, в data-n)
