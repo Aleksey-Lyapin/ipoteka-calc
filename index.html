@@ -429,7 +429,8 @@
     });
   }
   var collator = typeof Intl !== 'undefined' && Intl.Collator ? new Intl.Collator('ru', { sensitivity: 'base', numeric: true }) : null;
-  function byName(a, b) { return (collator ? collator.compare(a.name, b.name) : (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)) || a.n - b.n; }
+  // По названию; одинаковые названия — сначала с меньшим ежемесячным платежом
+  function byName(a, b) { return (collator ? collator.compare(a.name, b.name) : (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)) || (a.p1 || 0) - (b.p1 || 0) || a.n - b.n; }
 
   /* Лист «Программы», колонки A–O:
      A проекты (через запятую) · B тип · C программа · D ставка льготная · E ставка основная · F льготный период, лет ·
@@ -763,8 +764,14 @@
     // В основном списке — программы, где ПВ не больше чем на 10% выше указанного клиентом
     // (если ПВ не указан — выше минимального: наименьшей доли ПВ среди подходящих программ). Остальные — под ссылкой.
     // Сортировка по названию программы (по алфавиту); одинаковые названия — в порядке листа
-    var main = res.rows.filter(function (r) { return r.status === OK && (r.inMain || r.n === res.sel); }).sort(byName);
-    var extra = res.rows.filter(function (r) { return r.status === OK && !r.inMain && r.n !== res.sel; }).sort(byName);
+    // Программ с одинаковым названием — не больше 2 в основном списке: с наименьшим ежемесячным платежом
+    var groups = {}, keep = {};
+    res.rows.forEach(function (r) { if (r.status === OK && r.inMain) (groups[r.name] = groups[r.name] || []).push(r); });
+    Object.keys(groups).forEach(function (k) {
+      groups[k].slice().sort(function (a, b) { return a.p1 - b.p1 || a.n - b.n; }).slice(0, 2).forEach(function (r) { keep[r.n] = true; });
+    });
+    var main = res.rows.filter(function (r) { return r.status === OK && (keep[r.n] || r.n === res.sel); }).sort(byName);
+    var extra = res.rows.filter(function (r) { return r.status === OK && !keep[r.n] && r.n !== res.sel; }).sort(byName);
     // Развёрнутый список — единый, по алфавиту; ссылка «Скрыть» — в конце
     var shown = state.showAll ? main.concat(extra).sort(byName) : main;
     // № — порядковый номер строки в списке (номер строки листа остаётся внутренним, в data-n)
