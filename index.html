@@ -560,10 +560,20 @@
       };
     });
 
-    // выбор программы для подробного расчёта
-    var sel = 0;
-    if (inp.prog != null) {
-      sel = inp.prog >= 1 && inp.prog <= rows.length ? inp.prog : 0;
+    // Основной список: ПВ не больше чем на 10% выше указанного (или минимального, если ПВ не указан)
+    var shareOf = function (r) { return r.price > 0 ? r.pv / r.price : 1; };
+    var minShareAll = Infinity;
+    rows.forEach(function (r) { if (r.status === OK && shareOf(r) < minShareAll) minShareAll = shareOf(r); });
+    rows.forEach(function (r) {
+      r.inMain = pvIn > 0 ? r.pv <= pvIn * 1.1 + 0.5 : shareOf(r) <= minShareAll * 1.1 + 1e-9;
+    });
+
+    // выбор программы для подробного расчёта; выбранная вручную, но ставшая неподходящей — сбрасывается на автоподбор
+    var sel = 0, progReset = false;
+    var prog = inp.prog;
+    if (prog != null && (!rows[prog - 1] || rows[prog - 1].status !== OK)) { prog = null; progReset = true; }
+    if (prog != null) {
+      sel = prog;
     } else {
       var best = function (pred) {
         var b = 0, m = Infinity;
@@ -582,9 +592,7 @@
     var alerts = [];
     if (rows.length && !rows.some(function (r) { return r.status === OK; }))
       alerts.push('При выбранных условиях нет подходящих программ — измените ПВ, срок, скидку или тип ипотеки');
-    if (inp.prog != null && sel > 0 && rows[sel - 1].status !== OK)
-      alerts.push('Внимание: выбранная программа не подходит при текущих условиях');
-    return { rows: rows, sel: sel, alerts: alerts };
+    return { rows: rows, sel: sel, alerts: alerts, progReset: progReset };
   }
 
   /* ================== ФОРМАТИРОВАНИЕ ================== */
@@ -682,6 +690,7 @@
       return;
     }
     var res = compute(D, inp);
+    if (res.progReset) state.prog = null;
     el.alert.innerHTML = res.alerts.map(esc).join('<br>');
     renderDetail(inp, res);
     renderTable(res);
@@ -712,7 +721,7 @@
     var flat = el.flat.value.trim();
     var head = '<div class="ipc-hero">' +
       '<div class="ipc-prog">' + esc(r.name) + '</div>' +
-      '<div style="margin-bottom:10px">' + badge(r.status) + (flat ? ' <span class="ipc-static">· кв. ' + esc(flat) + '</span>' : '') + '</div>' +
+      (flat ? '<div class="ipc-static" style="margin-bottom:10px">кв. ' + esc(flat) + '</div>' : '') +
       '<div class="ipc-pay">' +
         '<div><div class="ipc-k">' + (grace ? 'Платёж в льготный период' : 'Ежемесячный платёж') + '</div><div class="ipc-v">' + rub(r.p1) + '</div></div>' +
         (grace ? '<div><div class="ipc-k">Платёж после льготного периода</div><div class="ipc-v ipc-sm">' + rub(r.p2) + '</div></div>' : '') +
@@ -737,22 +746,23 @@
       ['Переплата', function (r) { return rub(r.over); }]
     ];
     if (CONFIG.showInternal) cols.push(['Субсидия банку', function (r) { return rub(r.subr) + '<span class="ipc-s2">' + pct(r.sub) + ' кредита</span>'; }]);
-    cols.push(['Статус', function (r) { return badge(r.status); }]);
 
     el.thead.innerHTML = '<tr>' + cols.map(function (c) { return '<th>' + c[0] + '</th>'; }).join('') + '</tr>';
-    // Сначала подходящие программы (в порядке листа), неподходящие — под ссылкой «Показать»
-    var ok = res.rows.filter(function (r) { return r.status === OK || r.n === res.sel; });
-    var na = res.rows.filter(function (r) { return r.status !== OK && r.n !== res.sel; });
+    // Неподходящие программы не показываются совсем.
+    // В основном списке — программы, где ПВ не больше чем на 10% выше указанного клиентом
+    // (если ПВ не указан — выше минимального: наименьшей доли ПВ среди подходящих программ). Остальные — под ссылкой.
+    var main = res.rows.filter(function (r) { return r.status === OK && (r.inMain || r.n === res.sel); });
+    var extra = res.rows.filter(function (r) { return r.status === OK && !r.inMain && r.n !== res.sel; });
     var rowHtml = function (r) {
-      var cls = (r.n === res.sel ? 'ipc-sel' : '') + (r.status !== OK ? ' ipc-na' : '');
-      return '<tr data-n="' + r.n + '" class="' + cls + '" tabindex="0">' +
+      return '<tr data-n="' + r.n + '" class="' + (r.n === res.sel ? 'ipc-sel' : '') + '" tabindex="0">' +
         cols.map(function (c) { return '<td data-l="' + c[0] + '"><span>' + c[1](r) + '</span></td>'; }).join('') + '</tr>';
     };
-    var more = na.length ? '<tr class="ipc-more-row"><td colspan="' + cols.length + '"><button type="button" class="ipc-link" id="ipc-more">' +
-      (state.showAll ? 'Скрыть неподходящие программы' : 'Показать неподходящие программы (' + na.length + ')') + '</button></td></tr>' : '';
-    el.tbody.innerHTML = ok.map(rowHtml).join('') + more + (state.showAll ? na.map(rowHtml).join('') : '');
-    // Для PDF — только подходящие программы
-    state.pdfRows = ok.map(rowHtml);
+    var more = extra.length ? '<tr class="ipc-more-row"><td colspan="' + cols.length + '"><button type="button" class="ipc-link" id="ipc-more">' +
+      (state.showAll ? 'Скрыть программы с бо́льшим ПВ' : 'Показать все программы (ещё ' + extra.length + ')') + '</button></td></tr>' : '';
+    var shown = main.concat(state.showAll ? extra : []);
+    el.tbody.innerHTML = main.map(rowHtml).join('') + more + (state.showAll ? extra.map(rowHtml).join('') : '');
+    // В PDF — то же, что видно на экране
+    state.pdfRows = shown.map(rowHtml);
   }
 
   function renderNotes() {
