@@ -83,6 +83,16 @@
 /* Карточки рассрочек */
 #rassrochka-calc .rc-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: start; }
 #rassrochka-calc .rc-kinds { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--rc-line); }
+#rassrochka-calc .rc-kinds label, #rassrochka-calc .rc-kinds select { max-width: 420px; }
+#rassrochka-calc select {
+  width: 100%; height: 48px; padding: 0 40px 0 16px; font: inherit; font-size: 15px; color: var(--rc-text); cursor: pointer;
+  border: 1px solid var(--rc-line); border-radius: 12px; margin: 0; transition: border-color .15s;
+  -webkit-appearance: none; appearance: none; background: var(--rc-bg) no-repeat right 16px center;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23002346' stroke-width='1.5'/%3E%3C/svg%3E");
+}
+#rassrochka-calc select:hover { border-color: var(--rc-faint); }
+#rassrochka-calc select:focus { outline: none; border-color: var(--rc-text); box-shadow: 0 0 0 3px var(--rc-soft); }
+@media (max-width: 640px) { #rassrochka-calc .rc-kinds select { max-width: none; } }
 #rassrochka-calc .rc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
 #rassrochka-calc .rc-badge { display: inline-block; font-size: 12px; font-weight: 400; padding: 4px 10px; border-radius: 100px; white-space: nowrap; color: var(--rc-red); background: var(--rc-red-soft); }
 #rassrochka-calc .rc-badge.rc-zero { color: var(--rc-muted); background: var(--rc-page); }
@@ -224,8 +234,8 @@
       </div>
     </div>
     <div class="rc-kinds">
-      <span class="rc-label" id="rc-kind-l">Вид рассрочки</span>
-      <div class="rc-pills" id="rc-kind" role="group" aria-labelledby="rc-kind-l"></div>
+      <label for="rc-kind">Вид рассрочки</label>
+      <select id="rc-kind"></select>
     </div>
   </div>
 
@@ -433,7 +443,7 @@
   var KINDS = [['noPv', 'Рассрочка без ПВ'], ['m5050', 'Рассрочка 50/50'], ['t2020', 'Рассрочка 20/20'], ['parents', 'Для будущих родителей']];
   function renderKinds() {
     $('rc-kind').innerHTML = KINDS.map(function (k) {
-      return '<button type="button" data-kind="' + k[0] + '" aria-pressed="' + (k[0] === state.kind) + '">' + k[1] + '</button>';
+      return '<option value="' + k[0] + '"' + (k[0] === state.kind ? ' selected' : '') + '>' + k[1] + '</option>';
     }).join('');
   }
 
@@ -648,10 +658,7 @@
     var b = e.target.closest('button[data-p]'); if (!b) return;
     state.project = b.getAttribute('data-p'); renderProjects(); render();
   });
-  $('rc-kind').addEventListener('click', function (e) {
-    var b = e.target.closest('button[data-kind]'); if (!b) return;
-    state.kind = b.getAttribute('data-kind'); renderKinds(); render();
-  });
+  $('rc-kind').addEventListener('change', function () { state.kind = this.value; render(); });
   renderKinds();
   el.grid.addEventListener('click', function (e) {
     var b = e.target.closest('[data-pv] button[data-v]'); if (!b) return;
