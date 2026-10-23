@@ -136,7 +136,7 @@
 #ipoteka-calc th { color: var(--ipc-faint); font-weight: 400; font-size: 12px; text-align: right; padding: 0 8px 10px; border-bottom: 1px solid var(--ipc-line); vertical-align: bottom; }
 #ipoteka-calc td { padding: 9px 8px; border-bottom: 1px solid var(--ipc-line); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: top; }
 #ipoteka-calc th:first-child, #ipoteka-calc td:first-child,
-#ipoteka-calc th:nth-child(2), #ipoteka-calc td:nth-child(2) { text-align: left; }
+#ipoteka-calc th:nth-child(2), #ipoteka-calc td:nth-child(2), #ipoteka-calc th:nth-child(3), #ipoteka-calc td:nth-child(3) { text-align: left; }
 #ipoteka-calc td:first-child { color: var(--ipc-faint); }
 #ipoteka-calc td:nth-child(2) { white-space: normal; min-width: 180px; font-weight: 400; }
 #ipoteka-calc th:first-child, #ipoteka-calc td:first-child { padding-left: 4px; }
@@ -200,7 +200,7 @@
 .ipc-report table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
 .ipc-report th { color: #6C8DAF; font-weight: 400; font-size: 10.5px; text-align: right; padding: 0 5px 6px; border-bottom: 1px solid #D8E6F4; vertical-align: bottom; }
 .ipc-report td { padding: 7px 5px; border-bottom: 1px solid #D8E6F4; text-align: right; white-space: nowrap; vertical-align: top; font-variant-numeric: normal; }
-.ipc-report th:first-child, .ipc-report td:first-child, .ipc-report th:nth-child(2), .ipc-report td:nth-child(2) { text-align: left; }
+.ipc-report th:first-child, .ipc-report td:first-child, .ipc-report th:nth-child(2), .ipc-report td:nth-child(2), .ipc-report th:nth-child(3), .ipc-report td:nth-child(3) { text-align: left; }
 .ipc-report td:first-child { color: #6C8DAF; }
 .ipc-report td:nth-child(2) { white-space: normal; font-weight: 400; }
 .ipc-report tr.ipc-sel td { background: #EDF6FF; }
@@ -609,6 +609,11 @@
     return { list: list, tot: tot };
   }
 
+  // Банк в названии программы — в скобках в конце: «Субсид. семейная ипотека на весь срок (ВТБ)»
+  var BANK_RE = /\s*\(([^()]+)\)\s*$/;
+  function bankOf(name) { var m = BANK_RE.exec(name); return m ? m[1].trim() : ''; }
+  function progOf(name) { var m = BANK_RE.exec(name); return m ? name.slice(0, m.index).trim() : name; }
+
   function compute(D, inp) {
     var fam = byKids(inp.type);
     var base = inp.base, BT = inp.base + inp.finish;
@@ -676,7 +681,9 @@
         : (inp.term != null && inp.term > term) ? 'Срок снижен до максимального'
         : (inp.term != null && inp.term < term) ? 'Срок увеличен до минимального' : '';
       return {
-        n: i + 1, name: fam ? p.name + ' — ' + inp.kids : p.name, r1: r1, r2: r2, gm: gm, term: term, mpv: mpv, lim: lim, maxPv: p.maxPv,
+        n: i + 1, name: fam ? p.name + ' — ' + inp.kids : p.name,
+        // Для таблицы: банк — из скобок в конце названия «… (Абсолют)», название — без скобок (банк не указан — «—»)
+        bank: bankOf(p.name), title: fam ? progOf(p.name) + ' — ' + inp.kids : progOf(p.name), r1: r1, r2: r2, gm: gm, term: term, mpv: mpv, lim: lim, maxPv: p.maxPv,
         sub: sub, subp: subp, status: status, price: price, disc: disc, mpvr: mpvr, pv: pv, loan: loan, subr: subr,
         p1: p1, p2: p2, bal: bal, tot: tot, over: over, note: note, pvUp: pvIn > 0 && pv > pvIn + 0.5,
         combo: !!p.combo, famLoan: famLoan, baseLoan: baseLoan, pf: pf, pb: pb,
@@ -879,7 +886,8 @@
   function renderTable(res) {
     var cols = [
       ['№', function (r) { return r.pos; }],
-      ['Программа', function (r) { return esc(r.name); }],
+      ['Программа', function (r) { return esc(r.title); }],
+      ['Банк', function (r) { return r.bank ? esc(r.bank) : '—'; }],
       ['Ставка', function (r) {
         if (r.combo) return pct(r.wr) + '<span class="ipc-s2">средневзвешенная</span>';
         return pct(r.r1) + (r.gm ? '<span class="ipc-s2">далее ' + pct(r.r2) + '</span>' : '');
