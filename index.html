@@ -811,6 +811,8 @@
       ['Платёж', function (r) { return '<b>' + rub(r.p1) + '</b>' + (r.gm ? '<span class="ipc-s2">далее ' + rub(r.p2) + '</span>' : ''); }],
       ['Переплата', function (r) { return rub(r.over); }]
     ];
+    // В комбо-ипотеке льготного периода нет — колонку не показываем
+    if (state.type === COMBO) cols = cols.filter(function (c) { return c[0] !== 'Льготный период'; });
     if (CONFIG.showInternal) cols.push(['Субсидия банку', function (r) { return rub(r.subr) + '<span class="ipc-s2">' + pct(r.sub) + ' кредита</span>'; }]);
 
     el.thead.innerHTML = '<tr>' + cols.map(function (c) { return '<th>' + c[0] + '</th>'; }).join('') + '</tr>';
