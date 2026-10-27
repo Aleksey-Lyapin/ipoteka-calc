@@ -439,8 +439,12 @@
     showLogo: true,
     // Типы ипотеки, где все подходящие программы показываются сразу (без «Показать все программы»)
     showAllTypes: ['IT ипотека', 'Семейная ипотека', 'Комбо-ипотека', 'Траншевая ипотека'],
-    // Программы без скидки на квартиру (расчёт по базовой цене): часть названия + льготная ставка (null — любая)
-    noDiscountPrograms: [{ name: 'ипотека для всех на срок строительства (Совком)', r1: 0.044 }],
+    // Своя скидка на квартиру у программы, по проектам (вместо скидки из поля): часть названия + льготная ставка (null — любая).
+    // Проекта нет в disc — обычная скидка
+    programDiscounts: [{
+      name: 'ипотека для всех на срок строительства (Совком)', r1: 0.044,
+      disc: { 'ДМД 1 оч.': 0.05, 'ДМД 2 оч.': 0.07, 'ДНК 1 оч.': 0.05, 'Алиса 1 оч.': 0.07, 'Бестселлер': 0.03 }
+    }],
     // Траншевая ипотека: второй транш — через secondMonths мес. после ДДУ (ДДУ — сегодня), третий — thirdDate;
     // первый транш с долей не больше firstMinShare — не меньше firstMin ₽
     tranche: { secondMonths: 12, thirdDate: '2028-11-30', firstMinShare: 0.01, firstMin: 100000 },
@@ -654,11 +658,12 @@
   function bankOf(name) { var m = BANK_RE.exec(name); return m ? m[1].trim() : ''; }
   function progOf(name) { var m = BANK_RE.exec(name); return m ? name.slice(0, m.index).trim() : name; }
 
-  // Скидка на квартиру не действует (CONFIG.noDiscountPrograms): совпадает часть названия и льготная ставка
-  function noDiscProg(p) {
-    return (CONFIG.noDiscountPrograms || []).some(function (m) {
+  // Своя скидка программы в проекте (CONFIG.programDiscounts): совпадает часть названия и льготная ставка; нет правила — null
+  function progDiscount(p, project) {
+    var m = (CONFIG.programDiscounts || []).filter(function (m) {
       return p.name.toLowerCase().indexOf(m.name.toLowerCase()) >= 0 && (m.r1 == null || Math.abs(p.r1 - m.r1) < 1e-9);
-    });
+    })[0];
+    return m && m.disc[project] != null ? m.disc[project] : null;
   }
 
   function compute(D, inp) {
@@ -689,9 +694,9 @@
       var sub0 = subBase(BT - pv0) * sub;
       var subp = base > 0 ? sub0 / base : 0;
       // шаг 2 — итоговая цена с порогом скидки
-      // траншевая — скидка из листа; программы из CONFIG.noDiscountPrograms — без скидки; остальные — из поля
-      var noDiscP = noDiscProg(p);
-      var pdisc = noDiscP ? 0 : p.disc != null ? p.disc : inp.disc;
+      // программы из CONFIG.programDiscounts — своя скидка проекта; траншевая — скидка из листа; остальные — из поля
+      var pdOwn = progDiscount(p, inp.project);
+      var pdisc = pdOwn != null ? pdOwn : p.disc != null ? p.disc : inp.disc;
       var praw = Math.min(round0(base * (1 - pdisc) + sub0 + inp.finish), BT);
       var price = round6(1 - praw / BT) < D.threshold ? BT : praw;
       var disc = BT > 0 ? 1 - price / BT : 0;
@@ -729,7 +734,8 @@
         : pv > pvIn + 0.5 ? (pvIn === 0 ? 'Взят минимальный ПВ' : 'ПВ увеличен до минимума')
         : (inp.term != null && inp.term > term) ? 'Срок снижен до максимального'
         : (inp.term != null && inp.term < term) ? 'Срок увеличен до минимального' : '';
-      if (noDiscP && inp.disc > 0 && status === OK) note = 'Скидка на квартиру по этой программе не действует' + (note ? '. ' + note : '');
+      if (pdOwn != null && Math.abs(pdOwn - inp.disc) > 1e-9 && status === OK)
+        note = 'Скидка на квартиру по этой программе — ' + pct1(pdOwn) + (note ? '. ' + note : '');
       return {
         n: i + 1, name: fam ? p.name + ' — ' + inp.kids : p.name,
         // Для таблицы: банк — из скобок в конце названия «… (Абсолют)», название — без скобок (банк не указан — «—»)
