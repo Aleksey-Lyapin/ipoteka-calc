@@ -53,6 +53,20 @@
 #programs-list .pl-typebar .pl-filter:last-child { margin-bottom: 0; }
 #programs-list .pl-info { margin: 0 0 16px; font-size: 14px; color: var(--pl-muted); }
 #programs-list .pl-info b { color: var(--pl-text); font-weight: 700; }
+#programs-list .pl-row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; max-width: 560px; margin-bottom: 14px; }
+#programs-list .pl-row2 label { display: block; font-size: 13px; margin-bottom: 6px; color: var(--pl-muted); }
+#programs-list .pl-row2 input {
+  width: 100%; height: 48px; padding: 0 16px; font: inherit; font-size: 15px; color: var(--pl-text);
+  border: 1px solid var(--pl-line); border-radius: 12px; background: var(--pl-bg); margin: 0; transition: border-color .15s;
+}
+#programs-list .pl-row2 input::placeholder { color: var(--pl-faint); }
+#programs-list .pl-row2 input:hover { border-color: var(--pl-faint); }
+#programs-list .pl-row2 input:focus { outline: none; border-color: var(--pl-text); box-shadow: 0 0 0 3px var(--pl-soft); }
+#programs-list .pl-suffix { position: relative; }
+#programs-list .pl-suffix input { padding-right: 40px; }
+#programs-list .pl-suffix span { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--pl-muted); pointer-events: none; font-size: 15px; }
+#programs-list .pl-hint { display: block; color: var(--pl-faint); font-size: 12px; margin-top: 6px; line-height: 1.35; }
+#programs-list .pl-print { display: none; }
 #programs-list .pl-label { display: block; font-weight: 400; font-size: 13px; margin-bottom: 6px; color: var(--pl-muted); }
 #programs-list .pl-pills { display: flex; flex-wrap: wrap; gap: 8px; }
 #programs-list .pl-pills button {
@@ -81,6 +95,7 @@
   #programs-list .ipc-logo-svg { height: 38px; }
   #programs-list .pl-nav { height: 36px; padding: 0 14px; font-size: 13px; }
   #programs-list .pl-card { padding: 18px; }
+  #programs-list .pl-row2 { grid-template-columns: minmax(0, 1fr); }
   #programs-list .pl-scroll { overflow: visible; }
   #programs-list table, #programs-list tbody, #programs-list tr, #programs-list td { display: block; width: 100%; }
   #programs-list thead { display: none; }
@@ -107,6 +122,7 @@
   #programs-list .pl-nav, #programs-list .pl-sub, #programs-list .pl-filter, #programs-list .pl-typebar { display: none !important; }
   #programs-list h2 { font-size: 24px; }
   #programs-list .pl-info { font-size: 11px; margin-bottom: 8px; }
+  #programs-list .pl-print { display: inline; }
   #programs-list .pl-card { border: 1px solid var(--pl-line); padding: 12px 14px; }
   #programs-list table { font-size: 10.5px; }
   #programs-list td { padding: 5px 6px; }
@@ -127,6 +143,17 @@
   </div>
   <p class="pl-sub">Перечень ипотечных программ по проектам и типам ипотеки.</p>
   <div class="pl-card pl-typebar">
+    <div class="pl-row2">
+      <div>
+        <label for="pl-price">Стоимость квартиры, ₽</label>
+        <input id="pl-price" type="text" inputmode="numeric" autocomplete="off">
+        <span class="pl-hint">Базовая цена без скидки</span>
+      </div>
+      <div>
+        <label for="pl-disc">Скидка на квартиру</label>
+        <div class="pl-suffix"><input id="pl-disc" type="text" inputmode="decimal" autocomplete="off" placeholder="0"><span aria-hidden="true">%</span></div>
+      </div>
+    </div>
     <div class="pl-filter">
       <span class="pl-label" id="pl-project-l">Проект</span>
       <div class="pl-pills" id="pl-project" role="group" aria-labelledby="pl-project-l"></div>
@@ -287,9 +314,43 @@
   var INP = {
     disc: isFinite(qDisc) ? Math.min(Math.max(qDisc, 0), 100) / 100 : CONFIG.defaults.discount,
     base: qPrice > 0 ? qPrice : CONFIG.defaults.price,
-    finish: qFinish > 0 ? qFinish : 0,
-    fromCalc: isFinite(qDisc)
+    finish: qFinish > 0 ? qFinish : 0 // отделка — только из калькулятора, отдельного поля здесь нет
   };
+
+  /* Поля «Стоимость квартиры» и «Скидка на квартиру» — ввод как в калькуляторе */
+  // Скидка в процентах: «14», «7,5», «7.5». Разделитель — запятая, до 2 знаков, не больше 100
+  function cleanDisc(s) {
+    var t = String(s).replace(/\./g, ',').replace(/[^\d,]/g, '');
+    var i = t.indexOf(',');
+    if (i >= 0) t = t.slice(0, i + 1) + t.slice(i + 1).replace(/,/g, '').slice(0, 2);
+    if (i === 0) t = '0' + t;
+    if (parseFloat(t.replace(',', '.')) > 100) t = '100';
+    return t;
+  }
+  function parseDisc(s) { var v = parseFloat(String(s).replace(',', '.')); return isFinite(v) ? Math.min(Math.max(v, 0), 100) / 100 : 0; }
+  function parseMoney(s) { var d = String(s).replace(/[^\d]/g, ''); return d ? parseInt(d, 10) : null; }
+  var priceEl = document.getElementById('pl-price'), discEl = document.getElementById('pl-disc');
+  priceEl.value = INP.base ? nf0.format(INP.base) : '';
+  discEl.value = INP.disc ? nfp.format(+(INP.disc * 100).toPrecision(15)) : '';
+  // Адрес страницы обновляется вместе с полями — после обновления страницы значения сохраняются
+  function syncUrl() {
+    if (!window.history || !history.replaceState) return;
+    try {
+      history.replaceState(null, '', '?project=' + encodeURIComponent(project) + '&disc=' + +(INP.disc * 100).toPrecision(15) +
+        '&price=' + INP.base + (INP.finish ? '&finish=' + INP.finish : '') + (Q.kids ? '&kids=' + encodeURIComponent(Q.kids) : ''));
+    } catch (e) {}
+  }
+  priceEl.addEventListener('input', function () {
+    var v = parseMoney(priceEl.value), pos = priceEl.value.length - priceEl.selectionStart;
+    priceEl.value = v == null ? '' : nf0.format(v);
+    try { var p = Math.max(0, priceEl.value.length - pos); priceEl.setSelectionRange(p, p); } catch (e) {}
+    INP.base = v || 0; render(); syncUrl();
+  });
+  discEl.addEventListener('input', function () {
+    var v = cleanDisc(discEl.value);
+    if (v !== discEl.value) discEl.value = v;
+    INP.disc = parseDisc(v); render(); syncUrl();
+  });
 
   // Своя скидка программы в проекте (CONFIG.programDiscounts) — как в калькуляторе; нет правила — null
   function progDiscount(p, project) {
@@ -316,9 +377,10 @@
   function minPv(p, project) {
     if (p.mpv == null) return null;
     if (!(p.sub > 0)) return p.mpv;
-    var BT = INP.base + INP.finish;
-    var free = (p.combo ? (p.famLim == null ? Infinity : p.famLim) : 0) + (discFor(p, project) + D.tolerance) * INP.base / p.sub;
-    var v = Math.max(p.mpv, 1 - free / BT);
+    var BT = INP.base + INP.finish, ratio = BT > 0 ? INP.base / BT : 1;
+    // стоимость не указана: у комбо ограничение не считаем (K / 0 = ∞), у остальных цена сокращается
+    var x0 = 1 - (discFor(p, project) + D.tolerance) * ratio / p.sub - (p.combo ? (p.famLim == null ? Infinity : p.famLim) / BT : 0);
+    var v = Math.max(p.mpv, isNaN(x0) ? -Infinity : x0);
     return p.maxPv != null && v > p.maxPv + 1e-9 ? null : v;
   }
 
@@ -391,10 +453,11 @@
     var hasCombo = types.some(function (t) {
       return isCombo(t) && (!typeFilter || typeFilter === t) && inProject.some(function (p) { return p.type === t && p.sub > 0; });
     });
-    document.getElementById('pl-info').innerHTML = '<b>' + esc(project) + '</b> · скидка на квартиру <b>' + pct(INP.disc) + '</b>' +
-      (INP.fromCalc ? ' — из калькулятора' : ' — как по умолчанию в калькуляторе') +
-      (cap != null && INP.disc > cap + 1e-12 ? '. В этом проекте у программ с субсидией скидка не больше ' + pct(cap) + ' — мин. ПВ по ним посчитан от ' + pct(cap) : '') +
-      (hasCombo ? '. Комбо-ипотека с субсидией — при стоимости квартиры ' + rub(INP.base + INP.finish) : '');
+    // стоимость и скидка — в полях выше; в печати полей нет, поэтому дублируются в этой строке
+    document.getElementById('pl-info').innerHTML = '<b>' + esc(project) + '</b>' +
+      '<span class="pl-print"> · стоимость квартиры ' + (INP.base ? rub(INP.base) : '—') + ' · скидка на квартиру ' + pct(INP.disc) + '</span>' +
+      (cap != null && INP.disc > cap + 1e-12 ? ' · в этом проекте у программ с субсидией скидка не больше ' + pct(cap) + ' — мин. ПВ по ним посчитан от ' + pct(cap) : '') +
+      (hasCombo && INP.base > 0 ? ' · мин. ПВ комбо-ипотеки с субсидией зависит от стоимости квартиры' : '');
 
     var shownTypes = typeFilter ? [typeFilter] : types;
     groupsEl.innerHTML = shownTypes.map(function (type, ti) {
@@ -436,7 +499,7 @@
   });
   projectEl.addEventListener('click', function (e) {
     var b = e.target.closest('button[data-p]'); if (!b) return;
-    project = b.getAttribute('data-p'); render();
+    project = b.getAttribute('data-p'); render(); syncUrl();
   });
 
   window.ProgramsList = { data: function () { return D; }, minPv: function (p, pr) { return minPv(p, pr || project); }, input: INP };
