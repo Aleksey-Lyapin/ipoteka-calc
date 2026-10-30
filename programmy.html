@@ -222,7 +222,7 @@
       return {
         n: i, projects: projectsOf(r[0]), type: String(r[1]).trim(), name: nameOf(r[2]),
         r1: r1, r2: r2 == null ? r1 : r2, grace: numx(r[5]) || 0, term: numx(r[7]),
-        mpv: numx(r[8]), maxPv: numx(r[9]), minLoan: numx(r[10]), lim: numx(r[11]), sub: numx(r[12]) || 0,
+        mpv: numx(r[8]), maxPv: numx(r[9]), minLoan: numx(r[10]), lim: numx(r[11]), sub: numx(r[12]) || 0, restr: numx(r[13]),
         kids: kidsOf(r[14])
       };
     });
@@ -241,7 +241,7 @@
       var p = {
         n: 10000 + i, combo: true, projects: projectsOf(r[0]), type: String(r[1]).trim(), name: nameOf(r[2]),
         rateMin: wavg(minLoan), rateMax: wavg(lim), grace: 0, term: numx(r[7]),
-        mpv: numx(r[8]), maxPv: numx(r[9]), famLim: famLim, minLoan: minLoan, lim: lim, sub: numx(r[13]) || 0,
+        mpv: numx(r[8]), maxPv: numx(r[9]), famLim: famLim, minLoan: minLoan, lim: lim, sub: numx(r[13]) || 0, restr: numx(r[14]),
         kids: kidsOf(r[15])
       };
       p.r1 = p.rateMin; p.r2 = p.rateMax; // для сортировки
@@ -258,7 +258,7 @@
         n: 20000 + i, tranche: [numx(r[5]) || 0, numx(r[6]) || 0, numx(r[7]) || 0], disc: numx(r[8]) || 0,
         projects: projectsOf(r[0]), type: String(r[1]).trim(), name: nameOf(r[2]),
         r1: r1, r2: r2 == null ? r1 : r2, grace: numx(r[9]) || 0, term: numx(r[11]),
-        mpv: numx(r[12]), maxPv: numx(r[13]), minLoan: numx(r[14]), lim: numx(r[15]), sub: numx(r[16]) || 0,
+        mpv: numx(r[12]), maxPv: numx(r[13]), minLoan: numx(r[14]), lim: numx(r[15]), sub: numx(r[16]) || 0, restr: numx(r[17]),
         kids: kidsOf(r[18])
       };
       trancheType[p.type] = true;
@@ -275,7 +275,8 @@
     list.sort(function (a, b) { return rate(a.r1) - rate(b.r1) || collator.compare(a.name, b.name) || kidsIdx(a.kids) - kidsIdx(b.kids) || rate(a.r2) - rate(b.r2) || a.n - b.n; });
     return {
       list: list, types: types, projects: projects, comboType: comboType, trancheType: trancheType,
-      tolerance: typeof raw.tolerance === 'number' ? raw.tolerance : 0.002
+      tolerance: typeof raw.tolerance === 'number' ? raw.tolerance : 0.002,
+      threshold: typeof raw.threshold === 'number' ? raw.threshold : 0.01
     };
   }
 
@@ -369,20 +370,51 @@
     return cap != null ? Math.min(INP.disc, cap) : INP.disc;
   }
 
-  /* Минимально допустимый ПВ (доля стоимости квартиры), как в калькуляторе: программа с субсидией M применяется, только если
-     субсидия в % от базовой цены не больше скидки + допуск (лист «Справочники»): (цена − ПВ) × M ≤ (d + допуск) × база,
-     т. е. ПВ ≥ 1 − (d + допуск) × база / (M × цена). У комбо субсидия — только с части кредита сверх семейной (K), поэтому
-     ПВ ≥ 1 − (K + (d + допуск) × база / M) / цена — зависит от стоимости квартиры. Итог — большее из этого и мин. ПВ банка (I);
-     больше макс. ПВ (J) — программа при такой скидке недоступна (null). Без субсидии — мин. ПВ из колонки I. */
-  function minPv(p, project) {
-    if (p.mpv == null) return null;
-    if (!(p.sub > 0)) return p.mpv;
-    var BT = INP.base + INP.finish, ratio = BT > 0 ? INP.base / BT : 1;
-    // стоимость не указана: у комбо ограничение не считаем (K / 0 = ∞), у остальных цена сокращается
-    var x0 = 1 - (discFor(p, project) + D.tolerance) * ratio / p.sub - (p.combo ? (p.famLim == null ? Infinity : p.famLim) / BT : 0);
-    var v = Math.max(p.mpv, isNaN(x0) ? -Infinity : x0);
-    return p.maxPv != null && v > p.maxPv + 1e-9 ? null : v;
+  /* ---------- Расчёт программы — формулы калькулятора (src.html, compute) ---------- */
+  function p15(x) { return +x.toPrecision(15); }
+  function round0(x) { return x < 0 ? -Math.round(p15(-x)) : Math.round(p15(x)); }
+  function round6(x) { return round0(x * 1e6) / 1e6; }
+  function roundup0(x) { return x < 0 ? -Math.ceil(p15(-x)) : Math.ceil(p15(x)); }
+  var OK = 'Применяется';
+
+  /* Итоговая цена, итоговая скидка и ПВ при введённом ПВ pvIn ₽ (как в калькуляторе):
+     ПВ для субсидии — не меньше мин. ПВ банка (I) и «стоимость − лимит кредита»; субсидия = кредит × M (у комбо — с части сверх K);
+     цена = база × (1 − скидка) + субсидия + отделка, не больше базовой; итоговая скидка меньше порога — базовая цена;
+     ПВ — не меньше мин. ПВ банка от итоговой цены и «цена − лимит»; статус — как в калькуляторе. */
+  function evalAt(p, pd, pvIn) {
+    var B = INP.base, F = INP.finish, BT = B + F;
+    var lim = p.lim == null ? Infinity : p.lim, mpv = p.mpv || 0;
+    var famLim = p.famLim == null ? Infinity : p.famLim;
+    var subBase = function (L) { return p.combo ? Math.max(L - famLim, 0) : L; };
+    var pv0 = Math.min(Math.max(pvIn, roundup0(BT * mpv), BT - lim), BT);
+    var sub0 = subBase(BT - pv0) * p.sub, subp = B > 0 ? sub0 / B : 0;
+    var praw = Math.min(round0(B * (1 - pd) + sub0 + F), BT);
+    var price = round6(1 - praw / BT) < D.threshold ? BT : praw;
+    var mpvr = Math.max(roundup0(price * mpv), price - lim);
+    var pv = Math.min(Math.max(pvIn, mpvr), price), loan = price - pv;
+    var status = loan <= 0 ? 'Кредит не нужен'
+      : (p.restr != null && B < p.restr) ? 'Не подходит для квартиры'
+      : pv / price > (p.maxPv == null ? 1 : p.maxPv) + 1e-12 ? 'ПВ больше максимального'
+      : loan < (p.minLoan || 0) ? 'Кредит меньше минимального'
+      : p.sub === 0 ? OK
+      : subp <= pd + D.tolerance + 1e-12 ? OK : 'Не применяется';
+    return { price: price, disc: BT > 0 ? 1 - price / BT : 0, pv: pv, status: status };
   }
+  /* Мин. ПВ — наименьший ПВ, при котором калькулятор применяет программу. Без субсидии — мин. ПВ банка / лимит кредита.
+     С субсидией M нужно ещё: (стоимость − ПВ) × M ≤ (скидка + допуск) × база (у комбо — сверх K), т. е.
+     ПВ ≥ стоимость − K − (скидка + допуск) × база / M. Цена и скидка — при этом ПВ. Стоимость не указана — null. */
+  function calcRow(p) {
+    if (!(INP.base > 0)) return null;
+    var pd = discFor(p, project), r = evalAt(p, pd, 0);
+    if (r.status === 'Не применяется') {
+      var BT = INP.base + INP.finish, K = p.combo ? (p.famLim == null ? Infinity : p.famLim) : 0;
+      var need = Math.max(roundup0(BT - K - (pd + D.tolerance) * INP.base / p.sub), 0);
+      for (var i = 0; i < 5 && r.status === 'Не применяется'; i++) r = evalAt(p, pd, need + i); // запас на округление
+    }
+    return r;
+  }
+  var WHY = { 'Не применяется': 'субсидия больше скидки', 'ПВ больше максимального': 'нужен ПВ больше макс.',
+    'Кредит меньше минимального': 'кредит меньше мин.', 'Не подходит для квартиры': 'не для этой цены', 'Кредит не нужен': 'кредит не нужен' };
 
   /* ---------- Вывод ---------- */
   // kidsFilter — выбранное количество детей по каждому типу (у детей «Все» нет); typeFilter '' — все типы
@@ -402,7 +434,6 @@
 
   function cols(type) {
     var T = CONFIG.tranche;
-    var pvTitle = isTranche(type) ? 'Мин. ПВ' : 'Мин. ПВ (скидка ' + pct(INP.disc) + ')';
     var c = (isCombo(type) ? [
       // Комбо: одна средневзвешенная ставка, без ставок частей и без льготного периода
       ['Программа', function (p) { return esc(p.name); }],
@@ -426,7 +457,15 @@
       ['Льготный период', function (p) { return hasGrace(p) ? years(p.grace) : 'нет'; }],
       ['Макс. срок', function (p) { return years(p.term); }]
     ]).concat([
-      [pvTitle, function (p) { var v = minPv(p, project); return v == null ? '—' : pct1up(v); }],
+      // p.calc — расчёт программы при введённых стоимости и скидке (render); не применяется — «—» и причина
+      ['Итоговая цена квартиры', function (p) { var r = p.calc; return r && r.status === OK ? rub(r.price) : '—'; }],
+      ['Итоговая скидка', function (p) { var r = p.calc; return r && r.status === OK ? pct(Math.round(r.disc * 1e4) / 1e4) : '—'; }],
+      ['Мин. ПВ', function (p) {
+        var r = p.calc;
+        if (!r) return '—';
+        if (r.status !== OK) return '—<span class="pl-s2">' + (WHY[r.status] || esc(r.status)) + '</span>';
+        return pct1up(r.pv / r.price) + '<span class="pl-s2">' + rub(r.pv) + '</span>';
+      }],
       ['Мин. размер кредита', function (p) { return rub(p.minLoan); }],
       ['Лимит кредита', function (p) { return p.lim == null ? 'без лимита' : rub(p.lim); }]
     ]);
@@ -450,14 +489,12 @@
     typeEl.innerHTML = pills([''].concat(types), typeFilter, 'data-t', function (t) { return t || 'Все'; });
 
     var cap = CONFIG.subsidyDiscountCap[project];
-    var hasCombo = types.some(function (t) {
-      return isCombo(t) && (!typeFilter || typeFilter === t) && inProject.some(function (p) { return p.type === t && p.sub > 0; });
-    });
+    inProject.forEach(function (p) { p.calc = calcRow(p); });
     // стоимость и скидка — в полях выше; в печати полей нет, поэтому дублируются в этой строке
     document.getElementById('pl-info').innerHTML = '<b>' + esc(project) + '</b>' +
       '<span class="pl-print"> · стоимость квартиры ' + (INP.base ? rub(INP.base) : '—') + ' · скидка на квартиру ' + pct(INP.disc) + '</span>' +
-      (cap != null && INP.disc > cap + 1e-12 ? ' · в этом проекте у программ с субсидией скидка не больше ' + pct(cap) + ' — мин. ПВ по ним посчитан от ' + pct(cap) : '') +
-      (hasCombo && INP.base > 0 ? ' · мин. ПВ комбо-ипотеки с субсидией зависит от стоимости квартиры' : '');
+      (INP.base > 0 ? '' : ' · укажите стоимость квартиры — без неё цену и мин. ПВ не посчитать') +
+      (cap != null && INP.disc > cap + 1e-12 ? ' · в этом проекте у программ с субсидией скидка не больше ' + pct(cap) + ' — расчёт по ним от ' + pct(cap) : '');
 
     var shownTypes = typeFilter ? [typeFilter] : types;
     groupsEl.innerHTML = shownTypes.map(function (type, ti) {
@@ -484,9 +521,10 @@
         '</section>';
     }).join('');
 
-    document.getElementById('pl-foot').innerHTML = 'Мин. ПВ указан в % от стоимости квартиры. У программ с субсидией застройщика он рассчитан от скидки на квартиру: ' +
-      'программа применяется, только если субсидия не больше скидки (+ ' + pct(D.tolerance) + '). «—» — при такой скидке программа недоступна. ' +
-      'У траншевой ипотеки скидка задана в программе.<br>Условия ориентировочные: итоговые ставку, срок и сумму кредита определяет банк.';
+    document.getElementById('pl-foot').innerHTML = 'Мин. ПВ — наименьший первоначальный взнос, при котором калькулятор применяет программу, в % от итоговой цены и в рублях. ' +
+      'Учитывает мин. ПВ банка, лимит кредита и субсидию застройщика: программа с субсидией применяется, только если субсидия не больше скидки (+ ' + pct(D.tolerance) + '). ' +
+      'Итоговая цена и скидка — при этом ПВ: у программ с субсидией цена выше на сумму субсидии; итоговая скидка меньше ' + pct(D.threshold) + ' — базовая цена. ' +
+      'У траншевой ипотеки скидка задана в программе. «—» — при таких стоимости и скидке программа не применяется.<br>Условия ориентировочные: итоговые ставку, срок и сумму кредита определяет банк.';
   }
 
   groupsEl.addEventListener('click', function (e) {
@@ -502,7 +540,7 @@
     project = b.getAttribute('data-p'); render(); syncUrl();
   });
 
-  window.ProgramsList = { data: function () { return D; }, minPv: function (p, pr) { return minPv(p, pr || project); }, input: INP };
+  window.ProgramsList = { data: function () { return D; }, calc: function (p, pr) { var keep = project; if (pr) project = pr; var r = calcRow(p); project = keep; return r; }, input: INP };
   D = normalize(SNAPSHOT); render();
 
   if (CONFIG.liveData && window.fetch) {
@@ -519,7 +557,7 @@
       var lst = res[1];
       var col = function (i) { return lst.map(function (r) { return r[i]; }).filter(function (v) { return v !== null && v !== ''; }); };
       var d = normalize({ programs: res[0], combo: res[2] || SNAPSHOT.combo, tranche: res[3] || SNAPSHOT.tranche,
-        projects: col(0), types: col(1), tolerance: lst[0] && lst[0][5] });
+        projects: col(0), types: col(1), tolerance: lst[0] && lst[0][5], threshold: lst[2] && lst[2][5] });
       if (d.list.length) { D = d; render(); }
     }).catch(function () { /* остаёмся на встроенной копии */ });
   }
