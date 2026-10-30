@@ -109,6 +109,7 @@
 #programs-list tbody tr:hover td { background: var(--pl-page); }
 #programs-list .pl-s2 { display: block; color: var(--pl-faint); font-size: 12px; font-weight: 400; margin-top: 2px; white-space: normal; }
 #programs-list .pl-s2.pl-nw { white-space: nowrap; }
+#programs-list .pl-pay2 { display: block; margin-top: 6px; }
 #programs-list .pl-empty { color: var(--pl-muted); font-size: 14px; }
 #programs-list .pl-foot { margin-top: 4px; font-size: 12px; color: var(--pl-faint); }
 
@@ -482,13 +483,58 @@
       r.p1 = (fam > 0 ? PMT(p.rf / 12, X, fam) : 0) + (rest > 0 ? PMT(p.rb / 12, X, rest) : 0);
       r.rate = loan > 0 ? (fam * p.rf + rest * p.rb) / loan : p.rf;
     } else if (p.tranche) {
-      var T = CONFIG.tranche, a1 = round0(r.price * p.tranche[0]);
-      if (p.tranche[0] <= T.firstMinShare + 1e-9) a1 = Math.max(a1, T.firstMin);
-      a1 = Math.min(a1, loan);
-      r.p1 = PMT((r.graceM > 0 ? p.r1 : r2) / 12, X, a1);
+      // все платежи: после каждого транша (как карточка расчёта в калькуляторе)
+      r.tranches = trancheSchedule(p, r.price, loan, X, r.graceM, p.r1, r2).filter(function (t) { return t.amt > 0; });
+      r.p1 = r.tranches[0].pay;
     } else {
       r.p1 = PMT(p.r1 / 12, X, loan);
+      // льготный период: после него — аннуитет по основной ставке на остаток долга
+      if (r.graceM > 0) r.p2 = X - r.graceM <= 0 ? 0 : PMT(r2 / 12, X - r.graceM, balance(p.r1 / 12, r.graceM, r.p1, loan));
     }
+  }
+  function balance(r, n, pay, loan) { // = FV(r; n; pay; -loan)
+    if (r === 0) return loan - pay * n;
+    var f = Math.pow(1 + r, n);
+    return loan * f - pay * (f - 1) / r;
+  }
+  /* Траншевая — как trancheSchedule калькулятора: 1-й транш сегодня (ДДУ), 2-й — через secondMonths мес., 3-й — дата проекта;
+     суммы — доли цены (1-й ≤ firstMinShare — не меньше firstMin ₽), последний — остаток кредита. После каждого транша платёж —
+     аннуитет на выданную сумму до конца срока. */
+  function addMonths(d, n) {
+    var r = new Date(d.getFullYear(), d.getMonth() + n, d.getDate());
+    if (r.getDate() !== d.getDate()) r.setDate(0);
+    return r;
+  }
+  function monthsBetween(a, b) {
+    var m = (b.getFullYear() - a.getFullYear()) * 12 + b.getMonth() - a.getMonth();
+    return b.getDate() < a.getDate() ? m - 1 : m;
+  }
+  function trancheSchedule(p, price, loan, X, gm, r1, r2) {
+    var T = CONFIG.tranche;
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var d3 = new Date(((T.thirdDateByProject || {})[project] || T.thirdDate) + 'T00:00:00');
+    var a1 = round0(price * p.tranche[0]);
+    if (p.tranche[0] <= T.firstMinShare + 1e-9) a1 = Math.max(a1, T.firstMin);
+    a1 = Math.min(a1, loan);
+    var a2 = Math.min(round0(price * p.tranche[1]), loan - a1);
+    var list = [
+      { d: today, amt: a1 },
+      { d: addMonths(today, T.secondMonths), amt: a2 },
+      { d: d3 < today ? today : d3, amt: loan - a1 - a2 }
+    ].map(function (t, i) { t.no = i + 1; t.m = Math.min(Math.max(monthsBetween(today, t.d), 0), X - 1); return t; })
+      .sort(function (x, y) { return x.m - y.m || x.no - y.no; });
+    var bal = 0, pay = 0, j = 0;
+    for (var k = 0; k < X; k++) {
+      var added = [];
+      while (j < list.length && list[j].m <= k) { bal += list[j].amt; added.push(list[j]); j++; }
+      var r = (k < gm ? r1 : r2) / 12;
+      if (added.length || k === gm) {
+        pay = bal > 0 ? PMT(r, X - k, bal) : 0;
+        added.forEach(function (t) { t.pay = pay; });
+      }
+      bal = bal * (1 + r) - pay;
+    }
+    return list;
   }
   // Банк — в скобках в конце названия: «Субсид. семейная ипотека на весь срок (ВТБ)»
   var BANK_RE = /\s*\(([^()]+)\)\s*$/;
@@ -549,8 +595,14 @@
       ['Платёж', function (p) {
         var r = p.calc;
         if (!r || r.status !== OK) return '—';
-        // срок — 30 лет или макс. срок программы (столбец «Макс. срок»), отдельно не пишем
-        return rub(r.p1) + (p.tranche ? '<span class="pl-s2">после 1-го транша</span>' : r.graceM ? '<span class="pl-s2">в льготный период</span>' : '');
+        // все платежи по очереди; срок — 30 лет или макс. срок программы (столбец «Макс. срок»), отдельно не пишем
+        var s2 = function (t) { return '<span class="pl-s2">' + t + '</span>'; };
+        if (r.tranches) return r.tranches.map(function (t, i) {
+          return (i ? '<span class="pl-pay2">' : '') + rub(t.pay) + s2(t.no + '-й транш' + (i ? ', с ' + t.d.toLocaleDateString('ru-RU') : '')) + (i ? '</span>' : '');
+        }).join('');
+        if (r.p2 != null) return rub(r.p1) + '<span class="pl-s2 pl-nw">' + (r.graceM === 12 ? 'первый год' : 'первые ' + (r.graceM % 12 ? r.graceM + ' мес.' : years(r.graceM / 12))) + '</span>' +
+          '<span class="pl-pay2">' + rub(r.p2) + s2('далее') + '</span>';
+        return rub(r.p1);
       }],
       ['Мин. размер кредита', function (p) { return rub(p.minLoan); }],
       ['Лимит кредита', function (p) { return p.lim == null ? 'без лимита' : rub(p.lim); }]
