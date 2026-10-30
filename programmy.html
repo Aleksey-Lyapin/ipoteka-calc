@@ -67,6 +67,28 @@
 #programs-list .pl-suffix span { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--pl-muted); pointer-events: none; font-size: 15px; }
 #programs-list .pl-hint { display: block; color: var(--pl-faint); font-size: 12px; margin-top: 6px; line-height: 1.35; }
 #programs-list .pl-print { display: none; }
+/* Фильтры перечня — как в таблице «Все программы» калькулятора */
+#programs-list .pl-filters { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .8fr) minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1.6fr); gap: 12px; align-items: end; margin-top: 14px; }
+#programs-list .pl-filters label { display: block; font-size: 12px; margin-bottom: 4px; color: var(--pl-muted); }
+#programs-list .pl-filters input, #programs-list .pl-filters select {
+  width: 100%; height: 40px; padding: 0 12px; font: inherit; font-size: 14px; color: var(--pl-text);
+  border: 1px solid var(--pl-line); border-radius: 10px; background: var(--pl-bg); margin: 0; transition: border-color .15s;
+}
+#programs-list .pl-filters select {
+  -webkit-appearance: none; appearance: none; padding-right: 32px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23002346' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+}
+#programs-list .pl-filters input::placeholder { color: var(--pl-faint); }
+#programs-list .pl-filters input:hover, #programs-list .pl-filters select:hover { border-color: var(--pl-faint); }
+#programs-list .pl-filters input:focus, #programs-list .pl-filters select:focus { outline: none; border-color: var(--pl-text); box-shadow: 0 0 0 3px var(--pl-soft); }
+#programs-list .pl-f-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+#programs-list .pl-f-reset { grid-column: 1 / -1; margin-top: -4px; }
+#programs-list .pl-link { font: inherit; font-size: 13px; color: var(--pl-red); background: none; border: 0; padding: 0; cursor: pointer; border-bottom: 1px solid rgba(226, 6, 23, .25); }
+@media (max-width: 860px) {
+  #programs-list .pl-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #programs-list .pl-f2 { grid-column: span 2; }
+}
 #programs-list .pl-label { display: block; font-weight: 400; font-size: 13px; margin-bottom: 6px; color: var(--pl-muted); }
 #programs-list .pl-pills { display: flex; flex-wrap: wrap; gap: 8px; }
 #programs-list .pl-pills button {
@@ -77,15 +99,16 @@
 #programs-list .pl-pills button[aria-pressed="true"] { background: var(--pl-text); border-color: var(--pl-text); color: #FFFFFF; font-weight: 400; }
 #programs-list button:focus-visible, #programs-list a:focus-visible { outline: 2px solid var(--pl-red); outline-offset: 2px; }
 #programs-list .pl-scroll { overflow-x: auto; }
-#programs-list table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-#programs-list th { color: var(--pl-faint); font-weight: 400; font-size: 12px; text-align: right; padding: 0 8px 10px; border-bottom: 1px solid var(--pl-line); vertical-align: bottom; }
-#programs-list td { padding: 9px 8px; border-bottom: 1px solid var(--pl-line); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: top; }
+#programs-list table { width: 100%; border-collapse: collapse; font-size: 13px; }
+#programs-list th { color: var(--pl-faint); font-weight: 400; font-size: 12px; text-align: right; padding: 0 6px 10px; border-bottom: 1px solid var(--pl-line); vertical-align: bottom; }
+#programs-list td { padding: 9px 6px; border-bottom: 1px solid var(--pl-line); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: top; }
 #programs-list th:first-child, #programs-list td:first-child { text-align: left; padding-left: 0; }
-#programs-list td:first-child { white-space: normal; min-width: 220px; font-weight: 400; }
+#programs-list td:first-child { white-space: normal; min-width: 190px; font-weight: 400; }
 #programs-list th:last-child, #programs-list td:last-child { padding-right: 0; }
 #programs-list tbody tr:last-child td { border-bottom: 0; }
 #programs-list tbody tr:hover td { background: var(--pl-page); }
-#programs-list .pl-s2 { display: block; color: var(--pl-faint); font-size: 12px; font-weight: 400; margin-top: 2px; }
+#programs-list .pl-s2 { display: block; color: var(--pl-faint); font-size: 12px; font-weight: 400; margin-top: 2px; white-space: normal; }
+#programs-list .pl-s2.pl-nw { white-space: nowrap; }
 #programs-list .pl-empty { color: var(--pl-muted); font-size: 14px; }
 #programs-list .pl-foot { margin-top: 4px; font-size: 12px; color: var(--pl-faint); }
 
@@ -162,6 +185,35 @@
       <span class="pl-label" id="pl-type-l">Тип ипотеки</span>
       <div class="pl-pills" id="pl-type" role="group" aria-labelledby="pl-type-l"></div>
     </div>
+    <div class="pl-filters" id="pl-filters">
+      <div>
+        <label for="pl-f-bank">Банк</label>
+        <select id="pl-f-bank"><option value="">Все банки</option></select>
+      </div>
+      <div>
+        <label for="pl-f-rate">Ставка до, %</label>
+        <input id="pl-f-rate" type="text" inputmode="decimal" autocomplete="off" placeholder="любая">
+      </div>
+      <div class="pl-f2">
+        <label for="pl-f-pmin">Итоговая цена, ₽</label>
+        <div class="pl-f-pair">
+          <input id="pl-f-pmin" type="text" inputmode="numeric" autocomplete="off" placeholder="от">
+          <input id="pl-f-pmax" type="text" inputmode="numeric" autocomplete="off" placeholder="до" aria-label="Итоговая цена до, ₽">
+        </div>
+      </div>
+      <div>
+        <label for="pl-f-pv">ПВ до, ₽</label>
+        <input id="pl-f-pv" type="text" inputmode="numeric" autocomplete="off" placeholder="любой">
+      </div>
+      <div class="pl-f2">
+        <label for="pl-f-paymin">Платёж, ₽</label>
+        <div class="pl-f-pair">
+          <input id="pl-f-paymin" type="text" inputmode="numeric" autocomplete="off" placeholder="от">
+          <input id="pl-f-paymax" type="text" inputmode="numeric" autocomplete="off" placeholder="до" aria-label="Платёж до, ₽">
+        </div>
+      </div>
+      <div class="pl-f-reset" id="pl-f-resetw" hidden><button type="button" class="pl-link" id="pl-f-reset">Сбросить фильтры</button></div>
+    </div>
   </div>
   <p class="pl-info" id="pl-info"></p>
   <div id="pl-groups"></div>
@@ -221,7 +273,7 @@
       var r1 = numx(r[3]), r2 = numx(r[4]);
       return {
         n: i, projects: projectsOf(r[0]), type: String(r[1]).trim(), name: nameOf(r[2]),
-        r1: r1, r2: r2 == null ? r1 : r2, grace: numx(r[5]) || 0, term: numx(r[7]),
+        r1: r1, r2: r2 == null ? r1 : r2, grace: numx(r[5]) || 0, minTerm: numx(r[6]), term: numx(r[7]),
         mpv: numx(r[8]), maxPv: numx(r[9]), minLoan: numx(r[10]), lim: numx(r[11]), sub: numx(r[12]) || 0, restr: numx(r[13]),
         kids: kidsOf(r[14])
       };
@@ -240,7 +292,7 @@
       };
       var p = {
         n: 10000 + i, combo: true, projects: projectsOf(r[0]), type: String(r[1]).trim(), name: nameOf(r[2]),
-        rateMin: wavg(minLoan), rateMax: wavg(lim), grace: 0, term: numx(r[7]),
+        rateMin: wavg(minLoan), rateMax: wavg(lim), rf: rf, rb: rb, wavg: wavg, grace: 0, minTerm: numx(r[6]), term: numx(r[7]),
         mpv: numx(r[8]), maxPv: numx(r[9]), famLim: famLim, minLoan: minLoan, lim: lim, sub: numx(r[13]) || 0, restr: numx(r[14]),
         kids: kidsOf(r[15])
       };
@@ -257,7 +309,7 @@
       var p = {
         n: 20000 + i, tranche: [numx(r[5]) || 0, numx(r[6]) || 0, numx(r[7]) || 0], disc: numx(r[8]) || 0,
         projects: projectsOf(r[0]), type: String(r[1]).trim(), name: nameOf(r[2]),
-        r1: r1, r2: r2 == null ? r1 : r2, grace: numx(r[9]) || 0, term: numx(r[11]),
+        r1: r1, r2: r2 == null ? r1 : r2, grace: numx(r[9]) || 0, minTerm: numx(r[10]), term: numx(r[11]),
         mpv: numx(r[12]), maxPv: numx(r[13]), minLoan: numx(r[14]), lim: numx(r[15]), sub: numx(r[16]) || 0, restr: numx(r[17]),
         kids: kidsOf(r[18])
       };
@@ -412,8 +464,35 @@
       var need = Math.max(roundup0(BT - K - (pd + D.tolerance) * INP.base / p.sub), 0);
       for (var i = 0; i < 5 && r.status === 'Не применяется'; i++) r = evalAt(p, pd, need + i); // запас на округление
     }
+    if (r.status === OK) payment(p, r);
     return r;
   }
+  function PMT(r, n, loan) { return r === 0 ? loan / n : loan * r / (1 - Math.pow(1 + r, -n)); }
+  /* Первый платёж при мин. ПВ — как в калькуляторе со сроком по умолчанию 30 лет (в рамках мин./макс. срока программы):
+     обычная — аннуитет по льготной ставке; комбо — сумма аннуитетов семейной (до K) и базовой части, ставка — средневзвешенная;
+     траншевая — платёж после первого транша (доля цены, ≤ firstMinShare — не меньше firstMin ₽). */
+  function payment(p, r) {
+    var maxTerm = p.term || 30, term = Math.min(Math.max(30, 1, Math.min(p.minTerm || 0, maxTerm)), maxTerm), X = term * 12;
+    var loan = r.price - r.pv;
+    var r2 = p.combo || p.grace !== 0 ? p.r2 : p.r1;
+    r.graceM = p.combo || Math.abs(r2 - p.r1) < 1e-12 ? 0 : Math.min(round0(p.grace * 12), X);
+    r.term = term; r.rate = p.r1;
+    if (p.combo) {
+      var fam = Math.min(loan, p.famLim == null ? Infinity : p.famLim), rest = loan - fam;
+      r.p1 = (fam > 0 ? PMT(p.rf / 12, X, fam) : 0) + (rest > 0 ? PMT(p.rb / 12, X, rest) : 0);
+      r.rate = loan > 0 ? (fam * p.rf + rest * p.rb) / loan : p.rf;
+    } else if (p.tranche) {
+      var T = CONFIG.tranche, a1 = round0(r.price * p.tranche[0]);
+      if (p.tranche[0] <= T.firstMinShare + 1e-9) a1 = Math.max(a1, T.firstMin);
+      a1 = Math.min(a1, loan);
+      r.p1 = PMT((r.graceM > 0 ? p.r1 : r2) / 12, X, a1);
+    } else {
+      r.p1 = PMT(p.r1 / 12, X, loan);
+    }
+  }
+  // Банк — в скобках в конце названия: «Субсид. семейная ипотека на весь срок (ВТБ)»
+  var BANK_RE = /\s*\(([^()]+)\)\s*$/;
+  function bankOf(name) { var m = BANK_RE.exec(name); return m ? m[1].trim() : ''; }
   var WHY = { 'Не применяется': 'субсидия больше скидки', 'ПВ больше максимального': 'нужен ПВ больше макс.',
     'Кредит меньше минимального': 'кредит меньше мин.', 'Не подходит для квартиры': 'не для этой цены', 'Кредит не нужен': 'кредит не нужен' };
 
@@ -465,7 +544,13 @@
         var r = p.calc;
         if (!r) return '—';
         if (r.status !== OK) return '—<span class="pl-s2">' + (WHY[r.status] || esc(r.status)) + '</span>';
-        return pct1up(r.pv / r.price) + '<span class="pl-s2">' + rub(r.pv) + '</span>';
+        return pct1up(r.pv / r.price) + '<span class="pl-s2 pl-nw">' + rub(r.pv) + '</span>';
+      }],
+      ['Платёж', function (p) {
+        var r = p.calc;
+        if (!r || r.status !== OK) return '—';
+        // срок — 30 лет или макс. срок программы (столбец «Макс. срок»), отдельно не пишем
+        return rub(r.p1) + (p.tranche ? '<span class="pl-s2">после 1-го транша</span>' : r.graceM ? '<span class="pl-s2">в льготный период</span>' : '');
       }],
       ['Мин. размер кредита', function (p) { return rub(p.minLoan); }],
       ['Лимит кредита', function (p) { return p.lim == null ? 'без лимита' : rub(p.lim); }]
@@ -480,6 +565,56 @@
     }).join('');
   }
 
+  /* ---------- Фильтры перечня (как в калькуляторе). Пустое поле — без ограничения.
+     Ставка — льготная (у комбо — средневзвешенная), платёж — первый; по цене, ПВ, ставке и платежу проходят только применяемые программы ---------- */
+  var F_IDS = ['bank', 'rate', 'pmin', 'pmax', 'pv', 'paymin', 'paymax'], fEl = {};
+  F_IDS.forEach(function (k) { fEl[k] = document.getElementById('pl-f-' + k); });
+  function readFilters() {
+    var rate = parseFloat(String(fEl.rate.value).replace(',', '.'));
+    return {
+      bank: fEl.bank.value, rate: isFinite(rate) ? rate / 100 : null,
+      pmin: parseMoney(fEl.pmin.value), pmax: parseMoney(fEl.pmax.value), pv: parseMoney(fEl.pv.value),
+      paymin: parseMoney(fEl.paymin.value), paymax: parseMoney(fEl.paymax.value)
+    };
+  }
+  function filterFn() {
+    var F = readFilters();
+    var calcF = F.rate != null || F.pmin != null || F.pmax != null || F.pv != null || F.paymin != null || F.paymax != null;
+    document.getElementById('pl-f-resetw').hidden = !(F.bank || calcF);
+    if (!F.bank && !calcF) return null;
+    return function (p) {
+      if (F.bank && bankOf(p.name) !== F.bank) return false;
+      if (!calcF) return true;
+      var r = p.calc;
+      if (!r || r.status !== OK) return false;
+      var pay = Math.round(r.p1);
+      return (F.rate == null || r.rate <= F.rate + 1e-9) &&
+        (F.pmin == null || r.price >= F.pmin) && (F.pmax == null || r.price <= F.pmax) &&
+        (F.pv == null || r.pv <= F.pv + 0.5) &&
+        (F.paymin == null || pay >= F.paymin) && (F.paymax == null || pay <= F.paymax);
+    };
+  }
+  // Банки — из программ проекта; выбранный банк, которого в проекте нет, сбрасывается
+  function fillBanks(list) {
+    var banks = [];
+    list.forEach(function (p) { var b = bankOf(p.name); if (b && banks.indexOf(b) < 0) banks.push(b); });
+    banks.sort(collator.compare);
+    var cur = fEl.bank.value;
+    fEl.bank.innerHTML = '<option value="">Все банки</option>' + banks.map(function (b) {
+      return '<option value="' + esc(b) + '"' + (b === cur ? ' selected' : '') + '>' + esc(b) + '</option>';
+    }).join('');
+  }
+  // Для печати: какие фильтры заданы
+  function filtersText() {
+    var F = readFilters(), t = [];
+    if (F.bank) t.push('банк ' + F.bank);
+    if (F.rate != null) t.push('ставка до ' + pct(F.rate));
+    if (F.pmin != null || F.pmax != null) t.push('цена' + (F.pmin != null ? ' от ' + rub(F.pmin) : '') + (F.pmax != null ? ' до ' + rub(F.pmax) : ''));
+    if (F.pv != null) t.push('ПВ до ' + rub(F.pv));
+    if (F.paymin != null || F.paymax != null) t.push('платёж' + (F.paymin != null ? ' от ' + rub(F.paymin) : '') + (F.paymax != null ? ' до ' + rub(F.paymax) : ''));
+    return t.join(', ');
+  }
+
   function render() {
     if (D.projects.indexOf(project) < 0) project = D.projects.indexOf(CONFIG.defaults.project) >= 0 ? CONFIG.defaults.project : D.projects[0];
     projectEl.innerHTML = pills(D.projects, project, 'data-p');
@@ -491,9 +626,12 @@
 
     var cap = CONFIG.subsidyDiscountCap[project];
     inProject.forEach(function (p) { p.calc = calcRow(p); });
-    // стоимость и скидка — в полях выше; в печати полей нет, поэтому дублируются в этой строке
+    fillBanks(inProject);
+    var flt = filterFn(), ft = filtersText();
+    // стоимость, скидка и фильтры — в полях выше; в печати полей нет, поэтому дублируются в этой строке
     document.getElementById('pl-info').innerHTML = '<b>' + esc(project) + '</b>' +
-      '<span class="pl-print"> · стоимость квартиры ' + (INP.base ? rub(INP.base) : '—') + ' · скидка на квартиру ' + pct(INP.disc) + '</span>' +
+      '<span class="pl-print"> · стоимость квартиры ' + (INP.base ? rub(INP.base) : '—') + ' · скидка на квартиру ' + pct(INP.disc) +
+      (ft ? ' · фильтры: ' + esc(ft) : '') + '</span>' +
       (INP.base > 0 ? '' : ' · укажите стоимость квартиры — без неё цену и мин. ПВ не посчитать') +
       (cap != null && INP.disc > cap + 1e-12 ? ' · в этом проекте у программ с субсидией скидка не больше ' + pct(cap) + ' — расчёт по ним от ' + pct(cap) : '');
 
@@ -509,6 +647,8 @@
         if (kidsList.indexOf(kf) < 0) kf = kidsFilter[type] = kidsList.indexOf(kidsDefault) >= 0 ? kidsDefault : (kidsList[0] || '');
       }
       var rows = fam && kf ? all.filter(function (p) { return p.kids === kf; }) : all;
+      var before = rows.length;
+      if (flt) rows = rows.filter(flt);
       var c = cols(type);
       var filter = fam && kidsList.length ? '<div class="pl-filter"><span class="pl-label" id="pl-kids-l' + ti + '">Количество детей</span>' +
         '<div class="pl-pills" role="group" aria-labelledby="pl-kids-l' + ti + '" data-kids="' + esc(type) + '">' +
@@ -518,13 +658,14 @@
         filter +
         (rows.length ? '<div class="pl-scroll"><table><thead><tr>' + c.map(function (x) { return '<th>' + x[0] + '</th>'; }).join('') + '</tr></thead><tbody>' +
           rows.map(function (p) { return '<tr>' + c.map(function (x) { return '<td data-l="' + x[0] + '"><span class="pl-v">' + x[1](p) + '</span></td>'; }).join('') + '</tr>'; }).join('') +
-          '</tbody></table></div>' : '<p class="pl-empty">Программ нет.</p>') +
+          '</tbody></table></div>' : '<p class="pl-empty">' + (before ? 'Нет программ по выбранным фильтрам.' : 'Программ нет.') + '</p>') +
         '</section>';
     }).join('');
 
     document.getElementById('pl-foot').innerHTML = 'Мин. ПВ — наименьший первоначальный взнос, при котором калькулятор применяет программу, в % от итоговой цены и в рублях. ' +
       'Учитывает мин. ПВ банка, лимит кредита и субсидию застройщика: программа с субсидией применяется, только если субсидия не больше скидки (+ ' + pct(D.tolerance) + '). ' +
       'Итоговая цена и скидка — при этом ПВ: у программ с субсидией цена выше на сумму субсидии; итоговая скидка меньше ' + pct(D.threshold) + ' — базовая цена. ' +
+      'Платёж — первый ежемесячный платёж при мин. ПВ на срок 30 лет (или макс. срок программы, если он меньше); у траншевой — после первого транша. ' +
       'У траншевой ипотеки скидка задана в программе. «—» — при таких стоимости и скидке программа не применяется.<br>Условия ориентировочные: итоговые ставку, срок и сумму кредита определяет банк.';
   }
 
@@ -539,6 +680,26 @@
   projectEl.addEventListener('click', function (e) {
     var b = e.target.closest('button[data-p]'); if (!b) return;
     project = b.getAttribute('data-p'); render(); syncUrl();
+  });
+  // Фильтры: деньги — с разделением разрядов, ставка — как поле скидки
+  ['pmin', 'pmax', 'pv', 'paymin', 'paymax'].forEach(function (k) {
+    var input = fEl[k];
+    input.addEventListener('input', function () {
+      var v = parseMoney(input.value), pos = input.value.length - input.selectionStart;
+      input.value = v == null ? '' : nf0.format(v);
+      try { var q = Math.max(0, input.value.length - pos); input.setSelectionRange(q, q); } catch (e) {}
+      render();
+    });
+  });
+  fEl.rate.addEventListener('input', function () {
+    var v = cleanDisc(fEl.rate.value);
+    if (v !== fEl.rate.value) fEl.rate.value = v;
+    render();
+  });
+  fEl.bank.addEventListener('change', render);
+  document.getElementById('pl-f-reset').addEventListener('click', function () {
+    F_IDS.forEach(function (k) { fEl[k].value = ''; });
+    render();
   });
 
   window.ProgramsList = { data: function () { return D; }, calc: function (p, pr) { var keep = project; if (pr) project = pr; var r = calcRow(p); project = keep; return r; }, input: INP };
