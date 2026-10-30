@@ -296,6 +296,7 @@
   /* ---------- Форматирование ---------- */
   var nf0 = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
   var nfp = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 });
+  var nfp1 = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 });
   function rub(v) { return v == null ? '—' : nf0.format(Math.round(v)) + ' ₽'; }
   function pct(v) { return v == null ? '—' : nfp.format(+(v * 100).toPrecision(15)) + '%'; }
   function plural(n, a, b, c) { var m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? b : c); }
@@ -459,7 +460,7 @@
     ]).concat([
       // p.calc — расчёт программы при введённых стоимости и скидке (render); не применяется — «—» и причина
       ['Итоговая цена квартиры', function (p) { var r = p.calc; return r && r.status === OK ? rub(r.price) : '—'; }],
-      ['Итоговая скидка', function (p) { var r = p.calc; return r && r.status === OK ? pct(Math.round(r.disc * 1e4) / 1e4) : '—'; }],
+      ['Итоговая скидка', function (p) { var r = p.calc; return r && r.status === OK ? nfp1.format(Math.round(p15(r.disc * 1000)) / 10) + '%' : '—'; }], // до 0,1%
       ['Мин. ПВ', function (p) {
         var r = p.calc;
         if (!r) return '—';
