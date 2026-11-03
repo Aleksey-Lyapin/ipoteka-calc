@@ -342,9 +342,14 @@
         </div>
       </div>
       <div class="ipc-row2">
-        <div class="ipc-field">
+        <div class="ipc-field" id="ipc-disc-f">
           <label for="ipc-disc">Скидка на квартиру</label>
           <div class="ipc-suffix"><input id="ipc-disc" type="text" inputmode="decimal" autocomplete="off" placeholder="0"><span aria-hidden="true">%</span></div>
+        </div>
+        <div class="ipc-field" id="ipc-coupon-f" hidden>
+          <label for="ipc-coupon">Агентская скидка (купон)</label>
+          <select id="ipc-coupon"></select>
+          <span class="ipc-hint">Вычитается из итоговой цены</span>
         </div>
       </div>
       <div class="ipc-field">
@@ -655,7 +660,7 @@
     return null;
   }
 
-  /* Расчёт всех программ проекта и типа. inp: { project, type, kids, base, finish, disc, pv, term, prog, flt }.
+  /* Расчёт всех программ проекта и типа. inp: { project, type, kids, base, finish, disc, coupon, pv, term, prog, flt }.
      opt (настройки страницы): { subsidyNoDiscountProjects: [...] — проекты, где у программ с субсидией скидки нет (Бестселлер),
      programDiscounts: [...] — дополнительные правила своей скидки программы } */
   function compute(D, inp, opt) {
@@ -699,8 +704,11 @@
       var noDisc = noDiscProjects.indexOf(inp.project) >= 0 && sub > 0;
       var discIn = noDisc ? 0 : pdisc;
       var praw = Math.min(round0(base * (1 - discIn) + sub0 + inp.finish), BT);
-      var price = round6(1 - praw / BT) < D.threshold ? BT : praw;
-      var disc = BT > 0 ? 1 - price / BT : 0;
+      var price0 = round6(1 - praw / BT) < D.threshold ? BT : praw;
+      var disc = BT > 0 ? 1 - price0 / BT : 0; // скидка без купона
+      // Агентская скидка (купон, ₽) — вычитается в самом конце из итоговой цены
+      var coupon = Math.min(inp.coupon || 0, price0);
+      var price = price0 - coupon;
       var mpvr = Math.max(roundup0(price * mpv), price - lim);
       var pv = Math.min(Math.max(pvIn, mpvr), price);
       var loan = price - pv;
@@ -745,7 +753,7 @@
         n: i + 1, name: fam ? p.name + ' — ' + inp.kids : p.name,
         // Для таблицы: банк — из скобок в конце названия «… (Абсолют)», название — без скобок (банк не указан — «—»)
         bank: bankOf(p.name), title: fam ? progOf(p.name) + ' — ' + inp.kids : progOf(p.name), r1: r1, r2: r2, gm: gm, term: term, mpv: mpv, lim: lim, maxPv: p.maxPv,
-        sub: sub, subp: subp, status: status, price: price, disc: disc, mpvr: mpvr, pv: pv, loan: loan, subr: subr,
+        sub: sub, subp: subp, status: status, price: price, disc: disc, coupon: coupon, mpvr: mpvr, pv: pv, loan: loan, subr: subr,
         p1: p1, p2: p2, bal: bal, tot: tot, over: over, note: note, pvUp: pvIn > 0 && pv > pvIn + 0.5,
         combo: !!p.combo, famLoan: famLoan, baseLoan: baseLoan, pf: pf, pb: pb,
         tranches: tr ? tr.list.filter(function (t) { return t.amt > 0; }) : null,
@@ -828,6 +836,10 @@
     installmentUrl: 'rassrochka.html',
     // Страница «Все программы» (кнопка в шапке; в адрес передаются проект, скидка, цена). Пусто — кнопка скрыта
     programsUrl: 'programmy.html',
+    // Агентская скидка (купон) по проектам: варианты списка, ₽ (по умолчанию — «нет»). Вычитается из итоговой цены в конце
+    coupons: {
+      'ДНК 2 оч.': [[50000, 'студия'], [80000, '1-комн'], [100000, '2-комн'], [130000, '3/4 комн']]
+    },
     // Значения по умолчанию
     defaults: { project: 'ДМД 2 оч.', price: 10000000, discount: 0.14, type: 'Семейная ипотека', kids: 'один ребёнок', term: 30 }
   }, window.IPOTEKA_CALC_CONFIG || {});
@@ -921,7 +933,7 @@
   if (!root) return;
   var $ = function (id) { return document.getElementById(id); };
   var el = {
-    project: $('ipc-project'), flat: $('ipc-flat'), price: $('ipc-price'), finish: $('ipc-finish'), disc: $('ipc-disc'),
+    project: $('ipc-project'), flat: $('ipc-flat'), price: $('ipc-price'), finish: $('ipc-finish'), disc: $('ipc-disc'), coupon: $('ipc-coupon'),
     type: $('ipc-type'), kids: $('ipc-kids'), pv: $('ipc-pv'), term: $('ipc-term'),
     alert: $('ipc-alert'), detail: $('ipc-detail'), thead: $('ipc-thead'), tbody: $('ipc-tbody'), title: $('ipc-table-title'),
     pickinfo: $('ipc-pickinfo'), notes: $('ipc-notes'), save: $('ipc-save'), savemsg: $('ipc-savemsg'),
@@ -969,7 +981,7 @@
     return {
       project: el.project.value, type: state.type, kids: el.kids.value,
       base: parseMoney(el.price.value) || 0, finish: parseMoney(el.finish.value) || 0,
-      disc: parseDisc(el.disc.value), pv: parseMoney(el.pv.value),
+      disc: parseDisc(el.disc.value), coupon: couponsOf(el.project.value) ? +el.coupon.value || 0 : 0, pv: parseMoney(el.pv.value),
       term: isFinite(term) && term > 0 ? term : null, prog: state.prog, flt: filterFn()
     };
   }
@@ -1009,14 +1021,31 @@
     return keepCur;
   }
 
+  // Агентская скидка (купон): список — только у проектов из CONFIG.coupons; при смене проекта — снова «нет»
+  function couponsOf(project) { return (CONFIG.coupons || {})[project] || null; }
+  function syncCoupon() {
+    var project = el.project.value;
+    if (state.couponProject === project) return;
+    state.couponProject = project;
+    var list = couponsOf(project);
+    $('ipc-coupon-f').hidden = !list;
+    el.coupon.innerHTML = '<option value="0">нет</option>' + (list || []).map(function (c) {
+      return '<option value="' + c[0] + '">' + nf0.format(c[0]) + ' руб. (' + esc(c[1]) + ')</option>';
+    }).join('');
+  }
+  // Подпись скидки: «скидка 14%» или «скидка 14%+купон на 50 000 руб.»
+  function discLabel(r) { return 'скидка ' + pct1(r.disc) + (r.coupon ? '+купон на ' + nf0.format(r.coupon) + ' руб.' : ''); }
+
   function render() {
+    syncCoupon();
     var inp = readInputs();
     // «Все программы»: мин. ПВ там считается от скидки (и цены) из калькулятора
     if (CONFIG.programsUrl) $('ipc-all').href = CONFIG.programsUrl + '?project=' + encodeURIComponent(inp.project) +
       '&disc=' + p15(inp.disc * 100) + '&price=' + inp.base + '&finish=' + inp.finish + '&kids=' + encodeURIComponent(inp.kids);
     el.kids.disabled = !byKids(inp.type);
     // Траншевая: скидка берётся из листа по каждой программе — поле «Скидка на квартиру» скрываем
-    el.disc.closest('.ipc-row2').style.display = inp.type === TRANCHE ? 'none' : '';
+    $('ipc-disc-f').hidden = inp.type === TRANCHE;
+    el.disc.closest('.ipc-row2').style.display = inp.type === TRANCHE && !couponsOf(inp.project) ? 'none' : '';
     el.title.textContent = 'Все программы: ' + inp.project + ', ' + inp.type.toLowerCase();
 
     if (!inp.base) {
@@ -1052,7 +1081,7 @@
     if (grace) { add('Ставка после льготного периода', pct(r.r2)); add('Льготный период', period(r.gm)); }
     add('Срок ипотеки', years(r.term));
     add('Итоговая цена квартиры', rub(r.price), true);
-    add('Итоговая скидка', pct1(r.disc) + ' · ' + rub(inp.base + inp.finish - r.price));
+    add('Итоговая скидка', (r.coupon ? discLabel(r).replace(/^скидка /, '') : pct1(r.disc)) + ' · ' + rub(inp.base + inp.finish - r.price));
     add('Минимальный ПВ', rub(r.mpvr));
     add('Первоначальный взнос в расчёте', rub(r.pv) + ' · ' + pct1(r.price ? r.pv / r.price : 0), true);
     add('Сумма кредита', rub(r.loan), true);
@@ -1095,7 +1124,7 @@
       }],
       ['Льготный период', function (r) { return period(r.gm); }],
       ['Срок', function (r) { return years(r.term); }],
-      ['Итоговая цена', function (r) { return rub(r.price) + '<span class="ipc-s2">скидка ' + pct1(r.disc) + '</span>'; }],
+      ['Итоговая цена', function (r) { return rub(r.price) + '<span class="ipc-s2">' + discLabel(r) + '</span>'; }],
       ['ПВ', function (r) {
         return '<span' + (r.pvUp ? ' class="ipc-pvup"' : '') + '>' + rub(r.pv) + '</span><span class="ipc-s2">' +
           (r.maxPv < 1 ? pct1(r.mpv) + '–' + pct1(r.maxPv) : 'мин. ' + pct1(r.mpv)) + '</span>';
@@ -1275,6 +1304,7 @@
     add('Стоимость квартиры', rub(inp.base), true);
     if (inp.finish) add('Отделка', rub(inp.finish));
     if (inp.type !== TRANCHE) add('Скидка на квартиру', pct(inp.disc)); // у траншевой скидка своя у каждой программы
+    if (inp.coupon) add('Агентская скидка (купон)', nf0.format(inp.coupon) + ' руб.');
     add('Тип ипотеки', esc(inp.type));
     if (byKids(inp.type)) add('Количество детей', esc(inp.kids));
     add('Первоначальный взнос', inp.pv ? rub(inp.pv) : 'минимальный');
@@ -1337,6 +1367,7 @@
       render();
     });
     el.fBank.addEventListener('change', render);
+    el.coupon.addEventListener('change', render);
     $('ipc-f-reset').addEventListener('click', function () {
       [el.fBank, el.fRate, el.fPmin, el.fPmax, el.fPv, el.fPaymin, el.fPaymax].forEach(function (x) { x.value = ''; });
       render();
