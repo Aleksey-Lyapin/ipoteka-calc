@@ -443,7 +443,7 @@
     return null;
   }
 
-  /* Расчёт всех программ проекта и типа. inp: { project, type, kids, base, finish, disc, pv, term, prog, flt }.
+  /* Расчёт всех программ проекта и типа. inp: { project, type, kids, base, finish, disc, coupon, pv, term, prog, flt }.
      opt (настройки страницы): { subsidyNoDiscountProjects: [...] — проекты, где у программ с субсидией скидки нет (Бестселлер),
      programDiscounts: [...] — дополнительные правила своей скидки программы } */
   function compute(D, inp, opt) {
@@ -487,8 +487,11 @@
       var noDisc = noDiscProjects.indexOf(inp.project) >= 0 && sub > 0;
       var discIn = noDisc ? 0 : pdisc;
       var praw = Math.min(round0(base * (1 - discIn) + sub0 + inp.finish), BT);
-      var price = round6(1 - praw / BT) < D.threshold ? BT : praw;
-      var disc = BT > 0 ? 1 - price / BT : 0;
+      var price0 = round6(1 - praw / BT) < D.threshold ? BT : praw;
+      var disc = BT > 0 ? 1 - price0 / BT : 0; // скидка без купона
+      // Агентская скидка (купон, ₽) — вычитается в самом конце из итоговой цены
+      var coupon = Math.min(inp.coupon || 0, price0);
+      var price = price0 - coupon;
       var mpvr = Math.max(roundup0(price * mpv), price - lim);
       var pv = Math.min(Math.max(pvIn, mpvr), price);
       var loan = price - pv;
@@ -533,7 +536,7 @@
         n: i + 1, name: fam ? p.name + ' — ' + inp.kids : p.name,
         // Для таблицы: банк — из скобок в конце названия «… (Абсолют)», название — без скобок (банк не указан — «—»)
         bank: bankOf(p.name), title: fam ? progOf(p.name) + ' — ' + inp.kids : progOf(p.name), r1: r1, r2: r2, gm: gm, term: term, mpv: mpv, lim: lim, maxPv: p.maxPv,
-        sub: sub, subp: subp, status: status, price: price, disc: disc, mpvr: mpvr, pv: pv, loan: loan, subr: subr,
+        sub: sub, subp: subp, status: status, price: price, disc: disc, coupon: coupon, mpvr: mpvr, pv: pv, loan: loan, subr: subr,
         p1: p1, p2: p2, bal: bal, tot: tot, over: over, note: note, pvUp: pvIn > 0 && pv > pvIn + 0.5,
         combo: !!p.combo, famLoan: famLoan, baseLoan: baseLoan, pf: pf, pb: pb,
         tranches: tr ? tr.list.filter(function (t) { return t.amt > 0; }) : null,
