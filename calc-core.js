@@ -13,6 +13,10 @@
     programDiscounts: [{
       name: 'ипотека для всех на срок строительства (Совком)', r1: 0.044,
       disc: { 'ДМД 1 оч.': 0.05, 'ДМД 2 оч.': 0.05, 'ДНК 1 оч.': 0.05, 'ДНК 2 оч.': 0.05, 'Алиса 1 оч.': 0.05 }   // 0 — без скидки (базовая цена)
+    }, {
+      // exact — название целиком (без «Субсид. семейная ипотека на весь срок (Сбер)»), любое количество детей
+      name: 'Семейная ипотека (Сбер)', exact: true,
+      disc: { 'ДМД 2 оч.': 0.12, 'Бестселлер': 0.04 }
     }],
     // Макс. скидка на квартиру для программ с субсидией застройщика, по проектам: введена скидка больше — в расчёт идёт эта
     subsidyDiscountCap: { 'ДНК 2 оч.': 0.15 },
@@ -207,12 +211,12 @@
   function progOf(name) { var m = BANK_RE.exec(name); return m ? name.slice(0, m.index).trim() : name; }
 
   // Своя скидка программы в проекте (RULES.programDiscounts, затем дополнительные правила страницы extra):
-  // совпадает часть названия и льготная ставка; нет правила — null
+  // совпадает часть названия (exact — всё название) и льготная ставка; нет правила — null
   function progDiscount(p, project, extra) {
     var rules = RULES.programDiscounts.concat(extra || []);
     for (var i = 0; i < rules.length; i++) {
-      var m = rules[i];
-      if (p.name.toLowerCase().indexOf(m.name.toLowerCase()) >= 0 && (m.r1 == null || Math.abs(p.r1 - m.r1) < 1e-9) && m.disc[project] != null)
+      var m = rules[i], pn = p.name.toLowerCase(), mn = m.name.toLowerCase();
+      if ((m.exact ? pn === mn : pn.indexOf(mn) >= 0) && (m.r1 == null || Math.abs(p.r1 - m.r1) < 1e-9) && m.disc[project] != null)
         return m.disc[project];
     }
     return null;
@@ -364,7 +368,7 @@
   }
 
   window.IpotekaCore = {
-    version: '2026-11-03',
+    version: '2026-11-09',
     RULES: RULES, FAMILY: FAMILY, COMBO: COMBO, TRANCHE: TRANCHE, OK: OK, KIDS_ORDER: KIDS_ORDER, byKids: byKids,
     numx: numx, fixHomoglyphs: fixHomoglyphs, parsePrograms: parsePrograms, parseCombo: parseCombo, parseTranche: parseTranche, finishData: finishData,
     p15: p15, round0: round0, round6: round6, roundup0: roundup0, PMT: PMT, balance: balance,
