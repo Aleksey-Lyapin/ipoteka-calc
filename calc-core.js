@@ -22,7 +22,7 @@
     subsidyDiscountCap: { 'ДНК 2 оч.': 0.15 },
     // Траншевая ипотека (листы без своих дат): второй транш — через secondMonths мес. после ДДУ (ДДУ — сегодня),
     // третий — thirdDate (у проектов из thirdDateByProject — своя дата); первый транш с долей не больше firstMinShare — не меньше firstMin ₽
-    tranche: { secondMonths: 12, thirdDate: '2028-11-30', thirdDateByProject: { 'ДНК 2 оч.': '2029-05-31' }, firstMinShare: 0.01, firstMin: 100000 },
+    tranche: { secondMonths: 12, thirdDate: '2028-11-30', thirdDateByProject: { 'ДНК 2 оч.': '2029-11-30' }, firstMinShare: 0.01, firstMin: 100000 },
     // Типы ипотеки, где все подходящие программы показываются сразу (без «Показать все программы»)
     showAllTypes: ['IT ипотека', 'Семейная ипотека', 'Комбо-ипотека', 'Траншевая ипотека']
   };
@@ -368,7 +368,7 @@
   }
 
   window.IpotekaCore = {
-    version: '2026-11-09',
+    version: '2026-11-09b',
     RULES: RULES, FAMILY: FAMILY, COMBO: COMBO, TRANCHE: TRANCHE, OK: OK, KIDS_ORDER: KIDS_ORDER, byKids: byKids,
     numx: numx, fixHomoglyphs: fixHomoglyphs, parsePrograms: parsePrograms, parseCombo: parseCombo, parseTranche: parseTranche, finishData: finishData,
     p15: p15, round0: round0, round6: round6, roundup0: roundup0, PMT: PMT, balance: balance,
