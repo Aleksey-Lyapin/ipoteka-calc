@@ -23,6 +23,9 @@
     // Траншевая ипотека (листы без своих дат): второй транш — через secondMonths мес. после ДДУ (ДДУ — сегодня),
     // третий — thirdDate (у проектов из thirdDateByProject — своя дата); первый транш с долей не больше firstMinShare — не меньше firstMin ₽
     tranche: { secondMonths: 12, thirdDate: '2028-11-30', thirdDateByProject: { 'ДНК 2 оч.': '2029-11-30' }, firstMinShare: 0.01, firstMin: 100000 },
+    // Комбо-ипотека: средневзвешенная ставка на весь срок, но через years лет растёт на add (часть названия программы).
+    // Первые years лет платёж как раньше (семейная и базовая части), затем остаток долга — аннуитет по (средневзвешенная + add)
+    comboStepUp: [{ name: '(ВТБ)', years: 15, add: 0.04 }],
     // Типы ипотеки, где все подходящие программы показываются сразу (без «Показать все программы»)
     showAllTypes: ['IT ипотека', 'Семейная ипотека', 'Комбо-ипотека', 'Траншевая ипотека']
   };
@@ -222,6 +225,12 @@
     return null;
   }
 
+  // Правило повышения ставки комбо-ипотеки (RULES.comboStepUp) для программы или null
+  function comboStepUp(p) {
+    var list = RULES.comboStepUp || [];
+    for (var i = 0; i < list.length; i++) if (p.name.indexOf(list[i].name) >= 0) return list[i];
+    return null;
+  }
   /* Расчёт всех программ проекта и типа. inp: { project, type, kids, base, finish, disc, coupon, pv, term, prog, flt }.
      opt (настройки страницы): { subsidyNoDiscountProjects: [...] — проекты, где у программ с субсидией скидки нет (Бестселлер),
      programDiscounts: [...] — дополнительные правила своей скидки программы } */
@@ -295,6 +304,17 @@
       var bal = gm === 0 || loan <= 0 ? 0 : balance(r1 / 12, gm, p1, loan);
       var p2 = gm === 0 ? p1 : (X - gm <= 0 ? 0 : PMT(r2 / 12, X - gm, bal));
       var tot = gm === 0 ? p1 * X : p1 * gm + p2 * (X - gm);
+      // средневзвешенная ставка комбо — по суммам семейной и базовой частей
+      var wr = famLoan + baseLoan > 0 ? (famLoan * r1 + baseLoan * r2) / (famLoan + baseLoan) : r1, wr2 = null;
+      // Комбо с повышением ставки (RULES.comboStepUp, ВТБ): после stepUp.years лет — остаток обеих частей по ставке wr + add
+      var su = p.combo ? comboStepUp(p) : null;
+      if (su && loan > 0 && X > round0(su.years * 12)) {
+        gm = round0(su.years * 12);
+        bal = balance(r1 / 12, gm, pf, famLoan) + balance(r2 / 12, gm, pb, baseLoan);
+        wr2 = wr + su.add;
+        p2 = PMT(wr2 / 12, X - gm, bal);
+        tot = p1 * gm + p2 * (X - gm);
+      }
       var tr = p.tranche && loan > 0 && X > 0 ? trancheSchedule(p, price, loan, X, gm, r1, r2, inp.project) : null;
       if (tr) { // траншевая: p1 — платёж после первого транша, p2 — после выдачи всего кредита
         var paid = tr.list.filter(function (t) { return t.amt > 0; });
@@ -319,8 +339,8 @@
         p1: p1, p2: p2, bal: bal, tot: tot, over: over, note: note, pvUp: pvIn > 0 && pv > pvIn + 0.5,
         combo: !!p.combo, famLoan: famLoan, baseLoan: baseLoan, pf: pf, pb: pb,
         tranches: tr ? tr.list.filter(function (t) { return t.amt > 0; }) : null,
-        // средневзвешенная ставка комбо — по суммам семейной и базовой частей
-        wr: famLoan + baseLoan > 0 ? (famLoan * r1 + baseLoan * r2) / (famLoan + baseLoan) : r1,
+        // wr — средневзвешенная ставка комбо; wr2 — она же после повышения (comboStepUp; иначе null), действует с месяца gm + 1
+        wr: wr, wr2: wr2,
         pdisc: discIn // скидка, с которой посчитана программа (своя / из листа / из поля с учётом ограничения)
       };
     });
@@ -368,11 +388,11 @@
   }
 
   window.IpotekaCore = {
-    version: '2026-11-09b',
+    version: '2026-11-13',
     RULES: RULES, FAMILY: FAMILY, COMBO: COMBO, TRANCHE: TRANCHE, OK: OK, KIDS_ORDER: KIDS_ORDER, byKids: byKids,
     numx: numx, fixHomoglyphs: fixHomoglyphs, parsePrograms: parsePrograms, parseCombo: parseCombo, parseTranche: parseTranche, finishData: finishData,
     p15: p15, round0: round0, round6: round6, roundup0: roundup0, PMT: PMT, balance: balance,
     addMonths: addMonths, monthsBetween: monthsBetween, trancheDate: trancheDate, trancheDates: trancheDates, trancheSchedule: trancheSchedule,
-    bankOf: bankOf, progOf: progOf, progDiscount: progDiscount, compute: compute
+    bankOf: bankOf, progOf: progOf, progDiscount: progDiscount, comboStepUp: comboStepUp, compute: compute
   };
 })();
