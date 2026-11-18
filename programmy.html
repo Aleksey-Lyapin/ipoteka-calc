@@ -674,8 +674,11 @@
     // Накопление ПВ в период строительства — как в калькуляторе (CONFIG.pvSaving в src.html), только на этом сайте (ekb-msk и calc_… не затрагивает): Совком 4,4% —
     // сразу ПВ 5%, остаток до мин. ПВ программы (20,1%) — равными платежами по целым месяцам до даты проекта (вместе с платежом по ипотеке);
     // льготная ставка — до этой даты, потом основная. Кредит — как при ПВ 20,1%
-    pvSaving: [{ name: 'Ипотека для всех на срок строительства (Совком)', r1: 0.044, minPv: 0.05,
+    pvSaving: [{ name: 'Ипотека для всех на срок строительства с накоплением на ПВ (Совком)', r1: 0.044, minPv: 0.05,
       projects: { 'ДМД 2 оч.': '2028-11-30', 'Алиса 1 оч.': '2028-11-30' } }],
+    // Совком 4,4% в этих проектах — две программы: с накоплением ПВ (pvSaving) и без накопления (как раньше); своя скидка — у обеих
+    pvSavingSplit: { name: 'Ипотека для всех на срок строительства (Совком)', r1: 0.044, projects: ['ДМД 2 оч.', 'Алиса 1 оч.'],
+      save: 'Ипотека для всех на срок строительства с накоплением на ПВ (Совком)', no: 'Ипотека для всех на срок строительства без накопления на ПВ (Совком)' },
     // Если страница открыта не из калькулятора (без ?project=&disc=&price=) — значения как по умолчанию в калькуляторе
     defaults: { project: 'ДМД 2 оч.', price: 10000000, discount: 0.14, kids: 'один ребёнок' }
   }, window.PROGRAMS_LIST_CONFIG || {});
@@ -689,8 +692,31 @@
   /* Листы «Программы» (A–O), «Комбо_Екб» (A–P), «Траншевая_Сбер» (A–S) — разбор в calc-core.js, как в калькуляторе.
      На странице не показываются мин. срок, макс. ПВ, субсидия и ограничения (нужны для расчёта).
      Комбо: ставки частей не показываем — только средневзвешенную от суммы мин. кредита до лимита. */
+  // Совком 4,4% (CONFIG.pvSavingSplit) в проектах из списка — две программы: «с накоплением на ПВ» (CONFIG.pvSaving)
+  // и «без накопления на ПВ» (расчёт как раньше). В других проектах программа остаётся как в таблице
+  function splitPvSaving(programs) {
+    var S = CONFIG.pvSavingSplit, out = [];
+    if (!S) return programs;
+    programs.forEach(function (p) {
+      var on = S.projects.filter(function (x) { return p.projects.indexOf(x) >= 0; });
+      if (p.combo || p.tranche || !on.length || p.name !== S.name || (S.r1 != null && Math.abs(p.r1 - S.r1) > 1e-9)) { out.push(p); return; }
+      var rest = p.projects.filter(function (x) { return on.indexOf(x) < 0; });
+      if (rest.length) out.push(Object.assign({}, p, { projects: rest }));
+      out.push(Object.assign({}, p, { projects: on, name: S.save }), Object.assign({}, p, { projects: on, name: S.no, n: (p.n || 0) + 0.5 }));
+    });
+    return out;
+  }
+  // Своя скидка программы (RULES.programDiscounts) — и для двух новых названий Совкома
+  function splitDiscounts() {
+    var S = CONFIG.pvSavingSplit, out = [];
+    if (S) core.RULES.programDiscounts.forEach(function (m) {
+      if (!m.exact && S.name.toLowerCase().indexOf(m.name.toLowerCase()) >= 0)
+        [S.save, S.no].forEach(function (n) { out.push(Object.assign({}, m, { name: n })); });
+    });
+    return out;
+  }
   function normalize(raw) {
-    var list = core.parsePrograms(raw.programs).concat(core.parseCombo(raw.combo), core.parseTranche(raw.tranche, { n: 3 }));
+    var list = splitPvSaving(core.parsePrograms(raw.programs).concat(core.parseCombo(raw.combo), core.parseTranche(raw.tranche, { n: 3 })));
     var comboType = {}, trancheType = {};
     list.forEach(function (p, i) {
       p.n = i;
@@ -807,7 +833,7 @@
     if (!(INP.base > 0)) return null;
     var D1 = { programs: [p], threshold: D.threshold, tolerance: D.tolerance };
     var at = function (pv) {
-      return core.compute(D1, { project: project, type: p.type, kids: p.kids, base: INP.base, finish: INP.finish, disc: INP.disc, pv: pv, term: 30, prog: null }, { pvSaving: CONFIG.pvSaving }).rows[0];
+      return core.compute(D1, { project: project, type: p.type, kids: p.kids, base: INP.base, finish: INP.finish, disc: INP.disc, pv: pv, term: 30, prog: null }, { pvSaving: CONFIG.pvSaving, programDiscounts: splitDiscounts() }).rows[0];
     };
     var r = at(null);
     if (r.status === 'Не применяется') {
