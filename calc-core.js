@@ -225,6 +225,20 @@
     return null;
   }
 
+  /* Накопление ПВ в период строительства (настройка страницы opt.pvSaving, общие RULES не трогает):
+     [{ name: часть названия, r1: льготная ставка, projects: { 'Проект': 'ГГГГ-ММ-ДД' — конец периода }, minPv: 0.05 }].
+     Клиент вносит minPv сразу, до ПВ программы (I) копит равными платежами по целым месяцам до даты; кредит — как при ПВ I.
+     Возвращает { minPv, end, n } или null (программа не та, проект не тот, дата прошла). */
+  function pvSavingRule(p, project, list) {
+    for (var i = 0; list && i < list.length; i++) {
+      var R = list[i], end = R.projects && R.projects[project];
+      if (!end || p.name.indexOf(R.name) < 0 || (R.r1 != null && Math.abs(p.r1 - R.r1) > 1e-9)) continue;
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      var d = new Date(end + 'T00:00:00'), n = monthsBetween(today, d);
+      return n > 0 ? { minPv: R.minPv, end: d, n: n } : null;
+    }
+    return null;
+  }
   // Правило повышения ставки комбо-ипотеки (RULES.comboStepUp) для программы или null
   function comboStepUp(p) {
     var list = RULES.comboStepUp || [];
@@ -251,6 +265,9 @@
       var r2 = p.combo || p.grace !== 0 ? p.r2 : r1;
       // Льготный период учитываем, только если ставка после него другая («на весь срок» — одна ставка)
       var gn = p.combo || Math.abs(r2 - r1) < 1e-12 ? 0 : round0(p.grace * 12);
+      // Накопление ПВ (opt.pvSaving): льготная ставка — до даты из правила (целые месяцы), после — основная ставка
+      var ps = pvSavingRule(p, inp.project, opt.pvSaving);
+      if (ps) { r2 = p.r2; gn = ps.n; }
       // Срок: введённый клиентом, но в рамках мин./макс. срока программы (G, H); пусто — максимальный
       var maxTerm = p.term, minTerm = Math.min(p.minTerm, maxTerm);
       var term = inp.term != null ? Math.min(Math.max(inp.term, 1, minTerm), maxTerm) : maxTerm;
@@ -283,6 +300,17 @@
       var mpvr = Math.max(roundup0(price * mpv), price - lim);
       var pv = Math.min(Math.max(pvIn, mpvr), price);
       var loan = price - pv;
+      // Накопление ПВ: кредит — как при ПВ программы (pvBank), клиент сразу вносит не меньше ps.minPv,
+      // разницу (pvSave) копит до ps.end равными платежами pvSavePay
+      var pvBank = null, pvSave = 0, pvSavePay = 0;
+      if (ps) {
+        pvBank = pv;
+        mpvr = Math.max(roundup0(price * ps.minPv), price - lim);
+        pv = Math.min(Math.max(pvIn, mpvr), price);
+        mpv = ps.minPv;
+        pvSave = Math.max(pvBank - pv, 0);
+        pvSavePay = pvSave / ps.n;
+      }
       var subr = subBase(loan) * sub;
       var pvShare = price > 0 ? pv / price : 0;
       var status = loan <= 0 ? 'Кредит не нужен'
@@ -320,10 +348,15 @@
         var paid = tr.list.filter(function (t) { return t.amt > 0; });
         p1 = paid[0].pay; p2 = paid[paid.length - 1].pay; tot = tr.tot;
       }
+      // Накопление ПВ: в платёж периода строительства входит и платёж на накопление ПВ (p1m — только ипотека)
+      var p1m = p1;
+      if (ps && pvSave > 0) p1 += pvSavePay;
       var over = Math.max(tot - loan, 0);
       var note = status === 'Не применяется' ? 'Субсидия больше скидки'
         : status === 'ПВ больше максимального' ? 'Программа для ПВ до ' + pct1(p.maxPv) + ', в расчёте ' + pct1(pvShare)
         : status === 'Кредит меньше минимального' ? 'Программа для кредита от ' + rub(p.minLoan)
+        : ps && pvSave > 0 ? 'Сразу — ПВ ' + pct1(pv / price) + ', остальное до ' + pct1(pvBank / price) + ' (' + rub(pvSave) +
+            ') копится до ' + ps.end.toLocaleDateString('ru-RU') + ' — ' + rub(pvSavePay) + ' в месяц, ' + ps.n + ' мес.'
         : pv > pvIn + 0.5 ? (pvIn === 0 ? 'Взят минимальный ПВ' : 'ПВ увеличен до минимума')
         : (inp.term != null && inp.term > term) ? 'Срок снижен до максимального'
         : (inp.term != null && inp.term < term) ? 'Срок увеличен до минимального' : '';
@@ -341,12 +374,17 @@
         tranches: tr ? tr.list.filter(function (t) { return t.amt > 0; }) : null,
         // wr — средневзвешенная ставка комбо; wr2 — она же после повышения (comboStepUp; иначе null), действует с месяца gm + 1
         wr: wr, wr2: wr2,
+        // накопление ПВ (opt.pvSaving): pvBank — ПВ для банка, pvSave — сколько копить, pvSavePay — в месяц, до pvSaveEnd; p1m — платёж только по ипотеке
+        pvBank: pvBank, pvSave: pvSave, pvSavePay: pvSavePay, pvSaveEnd: ps ? ps.end : null, pvSaveN: ps ? ps.n : 0, p1m: p1m,
         pdisc: discIn // скидка, с которой посчитана программа (своя / из листа / из поля с учётом ограничения)
       };
     });
 
     // Основной список: ПВ не больше чем на 10% выше указанного (или минимального, если ПВ не указан)
-    var shareOf = function (r) { return r.price > 0 ? r.pv / r.price : 1; };
+    // ПВ не указан: доля ПВ для отбора и автоподбора — банковская (у накопления ПВ — ПВ программы, а не 5%),
+    // иначе программа с накоплением стала бы «минимальной» и вытеснила остальные. ПВ указан — сравнение с введённым ПВ
+    var pvOf = function (r) { return r.pvBank != null ? r.pvBank : r.pv; };
+    var shareOf = function (r) { return r.price > 0 ? pvOf(r) / r.price : 1; };
     var minShareAll = Infinity;
     rows.forEach(function (r) { if (r.status === OK && shareOf(r) < minShareAll) minShareAll = shareOf(r); });
     // Дальше 20% — программа убирается совсем (кроме типов из RULES.showAllTypes)
@@ -373,7 +411,7 @@
       };
       // ПВ указан — сначала программы без доплаты к нему. ПВ пустой — сравниваем платежи только среди программ
       // с наименьшим ПВ (иначе выигрывают программы, где ПВ поднят до 50% и платёж ниже за счёт взноса)
-      var share = function (r) { return r.price > 0 ? r.pv / r.price : 1; };
+      var share = shareOf;
       var minShare = Infinity;
       rows.forEach(function (r) { if (usable(r) && share(r) < minShare) minShare = share(r); });
       sel = (pvIn > 0 ? best(function (r) { return usable(r) && r.pv <= pvIn + 0.5; })
@@ -388,11 +426,11 @@
   }
 
   window.IpotekaCore = {
-    version: '2026-11-13',
+    version: '2026-11-18',
     RULES: RULES, FAMILY: FAMILY, COMBO: COMBO, TRANCHE: TRANCHE, OK: OK, KIDS_ORDER: KIDS_ORDER, byKids: byKids,
     numx: numx, fixHomoglyphs: fixHomoglyphs, parsePrograms: parsePrograms, parseCombo: parseCombo, parseTranche: parseTranche, finishData: finishData,
     p15: p15, round0: round0, round6: round6, roundup0: roundup0, PMT: PMT, balance: balance,
     addMonths: addMonths, monthsBetween: monthsBetween, trancheDate: trancheDate, trancheDates: trancheDates, trancheSchedule: trancheSchedule,
-    bankOf: bankOf, progOf: progOf, progDiscount: progDiscount, comboStepUp: comboStepUp, compute: compute
+    bankOf: bankOf, progOf: progOf, progDiscount: progDiscount, comboStepUp: comboStepUp, pvSavingRule: pvSavingRule, compute: compute
   };
 })();
