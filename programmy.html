@@ -694,6 +694,17 @@
      Комбо: ставки частей не показываем — только средневзвешенную от суммы мин. кредита до лимита. */
   // Совком 4,4% (CONFIG.pvSavingSplit) в проектах из списка — две программы: «с накоплением на ПВ» (CONFIG.pvSaving)
   // и «без накопления на ПВ» (расчёт как раньше). В других проектах программа остаётся как в таблице
+  // Целых месяцев от сегодня до даты 'ГГГГ-ММ-ДД' (как у накопления ПВ)
+  function monthsTo(e) {
+    var t = new Date(); t.setHours(0, 0, 0, 0);
+    var d = new Date(e + 'T00:00:00');
+    return (d.getFullYear() - t.getFullYear()) * 12 + d.getMonth() - t.getMonth() - (d.getDate() < t.getDate() ? 1 : 0);
+  }
+  // Дата конца периода строительства проекта — из CONFIG.pvSaving (правило «с накоплением»)
+  function pvSavingEnd(project) {
+    var R = (CONFIG.pvSaving || [])[0];
+    return R && R.projects ? R.projects[project] || null : R && R.end || null;
+  }
   function splitPvSaving(programs) {
     var S = CONFIG.pvSavingSplit, out = [];
     if (!S) return programs;
@@ -702,7 +713,15 @@
       if (p.combo || p.tranche || !on.length || p.name !== S.name || (S.r1 != null && Math.abs(p.r1 - S.r1) > 1e-9)) { out.push(p); return; }
       var rest = p.projects.filter(function (x) { return on.indexOf(x) < 0; });
       if (rest.length) out.push(Object.assign({}, p, { projects: rest }));
-      out.push(Object.assign({}, p, { projects: on, name: S.save }), Object.assign({}, p, { projects: on, name: S.no, n: (p.n || 0) + 0.5 }));
+      out.push(Object.assign({}, p, { projects: on, name: S.save }));
+      // «без накопления»: льготный период — до той же даты, что у «с накоплением» (целые месяцы от сегодня), а не столбец F;
+      // проекты с разными датами — отдельными копиями. Дата прошла — льготный период из таблицы
+      var byEnd = {};
+      on.forEach(function (x) { var e = pvSavingEnd(x) || ''; (byEnd[e] = byEnd[e] || []).push(x); });
+      Object.keys(byEnd).forEach(function (e) {
+        var m = e ? monthsTo(e) : 0;
+        out.push(Object.assign({}, p, { projects: byEnd[e], name: S.no, n: (p.n || 0) + 0.5 }, m > 0 ? { grace: m / 12, graceEnd: new Date(e + 'T00:00:00') } : {}));
+      });
     });
     return out;
   }
@@ -891,7 +910,7 @@
       ['Льготный период', function (p) {
         // накопление ПВ (CONFIG.pvSaving): льготная ставка — до даты проекта
         var ps = core.pvSavingRule ? core.pvSavingRule(p, project, CONFIG.pvSaving) : null;
-        return ps ? 'до ' + ps.end.toLocaleDateString('ru-RU') : hasGrace(p) ? years(p.grace) : 'нет';
+        return ps ? 'до ' + ps.end.toLocaleDateString('ru-RU') : p.graceEnd ? 'до ' + p.graceEnd.toLocaleDateString('ru-RU') : hasGrace(p) ? years(p.grace) : 'нет';
       }],
       ['Макс. срок', function (p) { return years(p.term); }]
     ]).concat([
