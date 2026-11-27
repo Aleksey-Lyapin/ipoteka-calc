@@ -46,6 +46,10 @@
 #programs-list .ipc-logo-svg { display: block; height: 52px; width: auto; }
 #programs-list .pl-sub { color: var(--pl-muted); margin: 0 0 24px; max-width: 640px; font-size: 14px; }
 #programs-list .pl-card { background: var(--pl-bg); border-radius: var(--pl-radius); padding: 24px; margin-bottom: 16px; }
+#programs-list .pl-eye { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0; margin-left: auto; align-self: center;
+  border: 1px solid var(--pl-line); border-radius: 50%; background: var(--pl-bg); color: var(--pl-faint); cursor: pointer; transition: color .15s, border-color .15s; }
+#programs-list .pl-eye:hover, #programs-list .pl-eye[aria-pressed="true"] { color: var(--pl-text); border-color: var(--pl-text); }
+#programs-list .pl-eye svg { width: 17px; height: 17px; }
 #programs-list .pl-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 14px; }
 #programs-list .pl-count { color: var(--pl-faint); font-size: 14px; }
 #programs-list .pl-filter { margin-bottom: 14px; }
@@ -142,6 +146,7 @@
 }
 @page { size: A4 landscape; margin: 8mm; }
 @media print {
+  #programs-list .pl-eye { display: none !important; }
   #programs-list { background: #FFFFFF; padding: 0; max-width: none; font-size: 11px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   #programs-list .pl-nav, #programs-list .pl-sub, #programs-list .pl-filter, #programs-list .pl-typebar { display: none !important; }
   #programs-list h2 { font-size: 24px; }
@@ -939,6 +944,13 @@
       ['Мин. размер кредита', function (p) { return rub(p.minLoan); }],
       ['Лимит кредита', function (p) { return isFinite(p.lim) ? rub(p.lim) : 'без лимита'; }]
     ]);
+    // Субсидия застройщика банку (27.11.2026) — два столбца под значком-глазом (по умолчанию скрыты):
+    // % — субсидия программы (M, % кредита; у комбо — от части кредита сверх семейного лимита), ₽ — по расчёту p.calc.
+    // Без субсидии — «нет», программа не применяется / нет стоимости — «—»
+    if (showSub) c.push(
+      ['Субсидия банку, %', function (p) { var r = p.calc; return !(p.sub > 0) ? 'нет' : r && r.status === OK ? pct(p.sub) : '—'; }],
+      ['Субсидия банку, ₽', function (p) { var r = p.calc; return !(p.sub > 0) ? 'нет' : r && r.status === OK ? rub(r.subr) : '—'; }]
+    );
     if (needKids(type)) c.splice(1, 0, ['Количество детей', function (p) { return esc(p.kids || '—'); }]);
     return c;
   }
@@ -999,6 +1011,15 @@
     return t.join(', ');
   }
 
+  // Столбцы «Субсидия банку, %/₽» — по значку-глазу у заголовка каждой таблицы (одно состояние на все таблицы)
+  var showSub = false;
+  function eyeBtn() {
+    var what = 'столбцы «Субсидия банку»';
+    return '<button type="button" class="pl-eye" data-eye="sub" aria-pressed="' + showSub + '" title="' + (showSub ? 'Скрыть ' : 'Показать ') + what + '" aria-label="' +
+      (showSub ? 'Скрыть ' : 'Показать ') + what + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>' + (showSub ? '<path d="M3 3l18 18"/>' : '') + '</svg></button>';
+  }
+
   function render() {
     if (D.projects.indexOf(project) < 0) project = D.projects.indexOf(CONFIG.defaults.project) >= 0 ? CONFIG.defaults.project : D.projects[0];
     projectEl.innerHTML = pills(D.projects, project, 'data-p');
@@ -1038,7 +1059,7 @@
         '<div class="pl-pills" role="group" aria-labelledby="pl-kids-l' + ti + '" data-kids="' + esc(type) + '">' +
         pills(kidsList, kf, 'data-k') + '</div></div>' : '';
       return '<section class="pl-card">' +
-        '<div class="pl-head"><h3>' + esc(type) + '</h3><span class="pl-count">' + rows.length + ' ' + plural(rows.length, 'программа', 'программы', 'программ') + '</span></div>' +
+        '<div class="pl-head"><h3>' + esc(type) + '</h3><span class="pl-count">' + rows.length + ' ' + plural(rows.length, 'программа', 'программы', 'программ') + '</span>' + eyeBtn() + '</div>' +
         filter +
         (rows.length ? '<div class="pl-scroll"><table><thead><tr>' + c.map(function (x) { return '<th>' + x[0] + '</th>'; }).join('') + '</tr></thead><tbody>' +
           rows.map(function (p) { return '<tr>' + c.map(function (x) { return '<td data-l="' + x[0] + '"><span class="pl-v">' + x[1](p) + '</span></td>'; }).join('') + '</tr>'; }).join('') +
@@ -1049,6 +1070,7 @@
   }
 
   groupsEl.addEventListener('click', function (e) {
+    if (e.target.closest('[data-eye]')) { showSub = !showSub; render(); return; }
     var b = e.target.closest('[data-kids] button[data-k]'); if (!b) return;
     kidsFilter[b.closest('[data-kids]').getAttribute('data-kids')] = b.getAttribute('data-k'); render();
   });
