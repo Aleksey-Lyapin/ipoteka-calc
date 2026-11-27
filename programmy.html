@@ -50,6 +50,24 @@
   border: 1px solid var(--pl-line); border-radius: 50%; background: var(--pl-bg); color: var(--pl-faint); cursor: pointer; transition: color .15s, border-color .15s; }
 #programs-list .pl-eye:hover, #programs-list .pl-eye[aria-pressed="true"] { color: var(--pl-text); border-color: var(--pl-text); }
 #programs-list .pl-eye svg { width: 17px; height: 17px; }
+/* Открыты столбцы «Субсидия банку» (pl-wide): страница шире, таблица плотнее — чтобы влезала без прокрутки */
+@media screen and (min-width: 641px) {
+  #programs-list.pl-wide { max-width: 1560px; }
+  #programs-list.pl-wide .pl-card { padding-left: 18px; padding-right: 18px; }
+  #programs-list.pl-wide table { font-size: 12px; }
+  #programs-list.pl-wide th { font-size: 11px; padding: 0 4px 8px; }
+  #programs-list.pl-wide td { padding: 8px 4px; }
+  #programs-list.pl-wide th:first-child, #programs-list.pl-wide td:first-child { padding-left: 0; }
+  #programs-list.pl-wide th:last-child, #programs-list.pl-wide td:last-child { padding-right: 0; }
+  #programs-list.pl-wide td:first-child { min-width: 150px; }
+  #programs-list.pl-wide .pl-s2 { font-size: 11px; }
+}
+@media print {
+  #programs-list.pl-wide table { font-size: 9px; }
+  #programs-list.pl-wide th { font-size: 8.5px; padding: 0 3px 6px; }
+  #programs-list.pl-wide td { padding: 4px 3px; }
+  #programs-list.pl-wide td:first-child { min-width: 120px; }
+}
 #programs-list .pl-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 14px; }
 #programs-list .pl-count { color: var(--pl-faint); font-size: 14px; }
 #programs-list .pl-filter { margin-bottom: 14px; }
@@ -1021,6 +1039,7 @@
   }
 
   function render() {
+    document.getElementById('programs-list').classList.toggle('pl-wide', showSub);
     if (D.projects.indexOf(project) < 0) project = D.projects.indexOf(CONFIG.defaults.project) >= 0 ? CONFIG.defaults.project : D.projects[0];
     projectEl.innerHTML = pills(D.projects, project, 'data-p');
     var inProject = D.list.filter(function (p) { return p.projects.indexOf(project) >= 0; });
